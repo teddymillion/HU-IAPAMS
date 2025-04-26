@@ -143,6 +143,8 @@
 // };
 
 // export default AdminDashboard;
+
+
 import { Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -161,6 +163,13 @@ import Evaluators from './Evaluators';
 import Results from './Results';
 import useAuthStore from '../../store/authStore';
 import { useState } from 'react';
+import Overview from '../../components/dashboard/admin/Home';
+import { path } from 'framer-motion/client';
+import Users from './users/manage-users';
+import PostJobForm from '../../components/dashboard/admin/PostJobForm';
+import ApplicationManagement from './application-management/ApplicationManagement';
+import EvaluationManagement from './evaluation-management/EvaluationManagement';
+
 
 const AdminDashboard = () => {
   const logout = useAuthStore((state) => state.logout);
@@ -184,6 +193,7 @@ const AdminDashboard = () => {
   };
 
   const navLinks = [
+    {path: '/admin/dashboard', name: 'Overview', icon: <FiBriefcase />},
     { path: '/admin/positions', name: 'Manage Positions', icon: <FiBriefcase /> },
     { path: '/admin/applications', name: 'Manage Applications', icon: <FiFileText /> },
 
@@ -394,11 +404,12 @@ const AdminDashboard = () => {
               transition={{ duration: 0.3 }}
             >
               <Routes>
-                <Route path="positions" element={<Positions />} />
-                <Route path="evaluators" element={<Evaluators />} />
+                <Route path="dashboard" element={<Overview />} />
+                <Route path="positions" element={<PostJobForm />} />
+                <Route path="evaluators" element={<EvaluationManagement />} />
                 <Route path="results" element={<Results />} />
-                <Route path="applications" element={<div>Applications Management</div>} />
-                <Route path="users" element={<div>Users Management</div>} />
+                <Route path="applications" element={<ApplicationManagement/>} />
+                <Route path="users" element={< Users />} />
                 <Route path="/" element={<Positions />} />
               </Routes>
             </motion.div>
