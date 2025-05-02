@@ -25,9 +25,10 @@ import Users from './users/manage-users';
 import PostJobForm from '../../components/dashboard/admin/PostJobForm';
 import ApplicationManagement from './application-management/ApplicationManagement';
 import EvaluationManagement from './evaluation-management/EvaluationManagement';
+import { useAuth } from '../../context/authContext';
+
 
 const AdminDashboard = () => {
-  const logout = useAuthStore((state) => state.logout);
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [userData, setUserData] = useState({
@@ -36,6 +37,9 @@ const AdminDashboard = () => {
     role: 'Administrator'
   });
 
+  const {auth, logout} = useAuth();
+  const user = auth?.user;
+ 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -93,7 +97,7 @@ const AdminDashboard = () => {
                     <FiUser />
                   )}
                 </div>
-                <span className="text-white hidden md:inline">{userData.name}</span>
+                <span className="text-white hidden md:inline">{user.username}</span>
               </button>
               
               {/* Profile dropdown */}
@@ -112,8 +116,8 @@ const AdminDashboard = () => {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                      <p className="text-xs text-gray-500">{userData.role}</p>
+                      <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
+                      <p className="text-xs text-gray-500">{user.role}</p>
                     </div>
                   </div>
                 </div>
