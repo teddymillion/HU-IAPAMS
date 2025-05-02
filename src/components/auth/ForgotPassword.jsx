@@ -10,21 +10,35 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (email) {
+  //     try {
+  //       await forgotPassword(email);
+  //       toast.success(`Password reset link sent to ${email}`);
+ 
+    
+  //     } catch (error) {
+  //       toast.error(error.message || 'Failed to send reset email');
+  //     }
+  //   } else {
+  //     toast.error('Please enter your email address');
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (email) {
-      try {
-        await forgotPassword(email);
-        toast.success(`Password reset link sent to ${email}`);
- 
-    
-      } catch (error) {
-        toast.error(error.message || 'Failed to send reset email');
-      }
+        const result = await forgotPassword(email);
+        if (result.success) {
+            toast.success(`Password reset link sent to ${email}`);
+        } else {
+            toast.error(result.error.message || 'Failed to send reset email');
+        }
     } else {
-      toast.error('Please enter your email address');
+        toast.error('Please enter your email address');
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

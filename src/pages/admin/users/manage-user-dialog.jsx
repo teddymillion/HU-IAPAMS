@@ -119,7 +119,7 @@ export const ManageUserDialog = (props) => {
                                 onChange={(event) => setFieldValue("role", event.target.value)}
                             >
                                 <MenuItem value={"admin"}>Admin</MenuItem>
-                                <MenuItem value={"applicant"}>Applicant</MenuItem>
+                                <MenuItem value={"staff"}>Staff</MenuItem>
                                 <MenuItem value={"evaluator"}>Evaluator</MenuItem>
                             </Select>
                         </FormControl>

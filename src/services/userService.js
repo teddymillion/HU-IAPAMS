@@ -80,22 +80,37 @@ export const updateUserData = async (data, token) => {
     }
 }
 
+// export const forgotPassword = async (email) => {
+//     try {
+//         const res = await api.post('/auth/forgot-password', { email });
+//         if (!res.data.success) {
+//             throw new Error(res.data.message || 'Forgot password failed');
+//         }
+//         return { success: true, data: res.data.data };
+//     } catch (error) {
+//         toast.error(error.response?.data?.message || error.message);
+//         return { 
+//             success: false, 
+//             error: error.response?.data || { message: 'An unknown error occurred' } 
+//         };
+//     }
+// }
+
 export const forgotPassword = async (email) => {
     try {
         const res = await api.post('/auth/forgot-password', { email });
         if (!res.data.success) {
             throw new Error(res.data.message || 'Forgot password failed');
         }
-        toast.success(res.data.message);
         return { success: true, data: res.data.data };
     } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
         return { 
             success: false, 
             error: error.response?.data || { message: 'An unknown error occurred' } 
         };
     }
-}
+};
+
 
 export const resetPassword = async (token,newPassword) => {
     try {
@@ -140,3 +155,21 @@ export const deleteUserAsync = async (ids, password, token) => {
         };
     }
 }
+
+
+export const changePassword = async (data, token) => {
+    try {
+        const res = await api.patch('/auth/change-password', data, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return { success: true, data: res.data };
+    } catch (error) {
+        return { 
+            success: false, 
+            error: error.response?.data || { message: 'An unknown error occurred' },
+        };
+    }
+};
