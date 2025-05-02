@@ -25,6 +25,8 @@ import { deleteUserAsync, getUsers } from './_lib/user.actions';
 import { defaultUser } from './_lib/user.types';
 import { ManageUserDialog } from './manage-user-dialog';
 import { RefreshPlugin } from '../../../components/core/plugins/RefreshPlugin';
+import { useAuth } from '../../../context/authContext';
+import { toast } from 'sonner';
 
 export default function Users({ searchParams }) {
 //   const { email, phone, sortDir } = searchParams;
@@ -37,6 +39,7 @@ export default function Users({ searchParams }) {
   const [selectedRows, setSelectedRows] = React.useState([]);
   const [status, setStatus] = React.useState('');
 
+  const { auth} = useAuth();
   async function fetchList() {
     try {
       setLoading(true);
@@ -44,7 +47,9 @@ export default function Users({ searchParams }) {
         page: pagination.pageNo,
         rowsPerPage: pagination.limit,
         status: status,
-      });
+      },
+        auth?.tokens?.accessToken
+    );
       if (response.success) {
         setUsers(response.data);
         setTotalRecords(response.totalRecords);
@@ -68,14 +73,27 @@ export default function Users({ searchParams }) {
   };
 
   const handleDelete = async (password) => {
-    const idsToDelete = [];
-    selectedRows.forEach((row) => {
-      idsToDelete.push(row._id);
-    });
-    const response = await deleteUserAsync(idsToDelete);
-    if (response.success) {
-      fetchList();
+
+    try {
+      const idsToDelete = [];
+      selectedRows.forEach((row) => {
+        idsToDelete.push(row._id);
+      });
+      const response = await deleteUserAsync(idsToDelete, password, auth?.tokens?.accessToken);
+      if (response.success) {
+        toast.success(`${idsToDelete.length} user(s) deleted successfully`);
+        fetchList();
+      }
+      else {
+        toast.error(response.error?.message || 'Failed to delete users');
+      }
+      
+    } catch (error) {
+      toast.error(error.message);
+      console.error('Error deleting users:', error);
+      
     }
+  
   };
 
   React.useEffect(() => {
