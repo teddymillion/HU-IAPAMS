@@ -36,7 +36,7 @@ function App() {
           </ProtectedRoute>
         } />
         
-        <Route path="/applicant/*" element={
+        <Route path="/staff/*" element={
           <ProtectedRoute allowedRole="staff">
             <StaffDashboard />
           </ProtectedRoute>

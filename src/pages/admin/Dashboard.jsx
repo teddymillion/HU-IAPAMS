@@ -26,6 +26,7 @@ import PostJobForm from '../../components/dashboard/admin/PostJobForm';
 import ApplicationManagement from './application-management/ApplicationManagement';
 import EvaluationManagement from './evaluation-management/EvaluationManagement';
 import { useAuth } from '../../context/authContext';
+import PositionManagement from '../../components/dashboard/admin/PositionManagement';
 
 
 const AdminDashboard = () => {
@@ -264,7 +265,7 @@ const AdminDashboard = () => {
             >
               <Routes>
                 <Route path="dashboard" element={<Overview />} />
-                <Route path="positions" element={<PostJobForm />} />
+                <Route path="positions" element={<PositionManagement />} />
                 <Route path="evaluators" element={<EvaluationManagement />} />
                 <Route path="results" element={<Results />} />
                 <Route path="applications" element={<ApplicationManagement/>} />

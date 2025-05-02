@@ -4,7 +4,7 @@ export const defaultUser = {
     last_name: "",
     email: "",
     contact_number: "",
-    role: "applicant",
+    role: "staff",
     password: "",
     confirm_password: "", 
     status: "ACTIVE",
