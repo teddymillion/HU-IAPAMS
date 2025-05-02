@@ -6,7 +6,7 @@ import { api, publicApi } from '/src/utils/api';
 export const getUsers = async (queryParams) => {
   try {
     const searchQuery = getSearchQuery(queryParams);
-    const res = await api.get(`/auth/getall-users${searchQuery}`);
+    const res = await api.get(`/auth/users${searchQuery}`);
     return { success: true, data: res.data.data, totalRecords: res.data.meta.total };
   } catch (error) {
     toast.error(error.message);
@@ -40,7 +40,7 @@ export const updateUserData = async (data) => {
       status: data.status,
       contact_number: data.contact_number,
     };
-    const res = await api.patch(`/auth/update-user/${data._id}`, payload);
+    const res = await api.patch(`/auth/users/${data._id}`, payload);
     toast.success(res.data.message);
     return { success: true, data: res.data.data };
   } catch (error) {
@@ -51,7 +51,7 @@ export const updateUserData = async (data) => {
 
 export const deleteUserAsync = async (ids) => {
   try {
-    const res = await api.delete(`/auth/delete`, {
+    const res = await api.delete(`/auth/users`, {
       data: { ids: ids },
     });
     toast.success(res.data.message);

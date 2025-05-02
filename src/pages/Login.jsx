@@ -1,13 +1,15 @@
 
-// // export default Login;
 // import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import useAuthStore from '../store/authStore';
 // import toast from 'react-hot-toast';
+// import { FiMail } from 'react-icons/fi';
 
 // const Login = () => {
 //   const [selectedRole, setSelectedRole] = useState('');
 //   const [credentials, setCredentials] = useState({ username: '', password: '' });
+//   const [showForgotPassword, setShowForgotPassword] = useState(false);
+//   const [email, setEmail] = useState('');
 //   const navigate = useNavigate();
 //   const login = useAuthStore((state) => state.login);
 
@@ -28,9 +30,21 @@
 //       });
 
 //       toast.success('Login successful!');
-//       navigate(`/${selectedRole}`);
+//       navigate(`/${selectedRole}/dashboard`);
 //     } else {
 //       toast.error('Please fill in all fields');
+//     }
+//   };
+
+//   const handleForgotPassword = (e) => {
+//     e.preventDefault();
+//     if (email) {
+//       // In a real app, you would send a password reset email here
+//       toast.success(`Password reset link sent to ${email}`);
+//       setShowForgotPassword(false);
+//       setEmail('');
+//     } else {
+//       toast.error('Please enter your email address');
 //     }
 //   };
 
@@ -39,78 +53,199 @@
 //       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
 //         <div>
 //           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-//             HU Academic Position System
+//             HU-IAPMS
 //           </h2>
 //         </div>
-//         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-//           <div className="rounded-md shadow-sm -space-y-px">
-//             <div className="mb-4">
-//               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Select Role
-//               </label>
-//               <select
-//                 id="role"
-//                 required
-//                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//                 value={selectedRole}
-//                 onChange={(e) => setSelectedRole(e.target.value)}
-//               >
-//                 <option value="">Select a role</option>
-//                 {roles.map((role) => (
-//                   <option key={role.value} value={role.value}>
-//                     {role.label}
-//                   </option>
-//                 ))}
-//               </select>
-//             </div>
-//             <div>
-//               <label htmlFor="username" className="sr-only">Username</label>
-//               <input
-//                 id="username"
-//                 name="username"
-//                 type="text"
-//                 required
-//                 className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-//                 placeholder="Username"
-//                 value={credentials.username}
-//                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-//               />
-//             </div>
-//             <div>
-//               <label htmlFor="password" className="sr-only">Password</label>
-//               <input
-//                 id="password"
-//                 name="password"
-//                 type="password"
-//                 required
-//                 className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-//                 placeholder="Password"
-//                 value={credentials.password}
-//                 onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-//               />
-//             </div>
-//           </div>
 
-//           <div>
-//             <button
-//               type="submit"
-//                className="px-4 py-2 bg-green-600 rounded-md text-sm font-medium text-white hover:bg-green-700"
-//             >
-//               Sign in
-//             </button>
-//           </div>
-//         </form>
+//         {showForgotPassword ? (
+//           <form className="mt-8 space-y-6" onSubmit={handleForgotPassword}>
+//             <div className="rounded-md shadow-sm">
+//               <div>
+//                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+//                   Enter your email to reset password
+//                 </label>
+//                 <div className="relative">
+//                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                     <FiMail className="text-gray-400" />
+//                   </div>
+//                   <input
+//                     id="email"
+//                     name="email"
+//                     type="email"
+//                     required
+//                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+//                     placeholder="Email address"
+//                     value={email}
+//                     onChange={(e) => setEmail(e.target.value)}
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+
+//             <div className="flex space-x-3">
+//               <button
+//                 type="button"
+//                 onClick={() => setShowForgotPassword(false)}
+//                 className="w-1/2 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+//               >
+//                 Cancel
+//               </button>
+//               <button
+//                 type="submit"
+//                 className="w-1/2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+//               >
+//                 Send Reset Link
+//               </button>
+//             </div>
+//           </form>
+//         ) : (
+//           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+//             <div className="rounded-md shadow-sm -space-y-px">
+//               <div className="mb-4">
+//                 <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+//                   Select Role
+//                 </label>
+//                 <select
+//                   id="role"
+//                   required
+//                   className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+//                   value={selectedRole}
+//                   onChange={(e) => setSelectedRole(e.target.value)}
+//                 >
+//                   <option value="">Select a role</option>
+//                   {roles.map((role) => (
+//                     <option key={role.value} value={role.value}>
+//                       {role.label}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+//               <div>
+//                 <label htmlFor="username" className="sr-only">Username</label>
+//                 <input
+//                   id="username"
+//                   name="username"
+//                   type="text"
+//                   required
+//                   className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+//                   placeholder="Username"
+//                   value={credentials.username}
+//                   onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+//                 />
+//               </div>
+//               <div>
+//                 <label htmlFor="password" className="sr-only">Password</label>
+//                 <input
+//                   id="password"
+//                   name="password"
+//                   type="password"
+//                   required
+//                   className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
+//                   placeholder="Password"
+//                   value={credentials.password}
+//                   onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="flex items-center justify-end">
+//               <button
+//                 type="button"
+//                 onClick={() => setShowForgotPassword(true)}
+//                 className="text-sm text-green-600 hover:text-green-500"
+//               >
+//                 Forgot password?
+//               </button>
+//             </div>
+
+//             <div>
+//               <button
+//                 type="submit"
+//                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+//               >
+//                 Sign in
+//               </button>
+//             </div>
+//           </form>
+//         )}
 //       </div>
 //     </div>
 //   );
 // };
 
 // export default Login;
+
+
+
+
+
+
+// import { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { useAuthStore } from '../store/authStore';
+
+// import { loginUser } from '../utils/api';
+// import FormInput from '../components/form/FormInput';
+// import PasswordInput from '../components/form/PasswordInput';
+// import AuthFormLayout from '../components/layout/AuthFormLayout';
+
+
+// const Login = () => {
+//   const [credentials, setCredentials] = useState({ identifier: '', password: '' });
+//   const [loading, setLoading] = useState(false);
+//   const navigate = useNavigate();
+//   const login = useAuthStore((state) => state.login);
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+    
+//     try {
+//       const { data } = await loginUser(credentials);
+//       login({ token: data.token, user: data.user });
+//       navigate(`/${data.user.role}/dashboard`);
+//     } catch (error) {
+//       // Handle error
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <AuthFormLayout title="HU-IAPMS Login">
+//       <form onSubmit={handleSubmit} className="space-y-6">
+//         <FormInput
+//           label="Email or Username"
+//           value={credentials.identifier}
+//           onChange={(e) => setCredentials({ ...credentials, identifier: e.target.value })}
+//         />
+        
+//         <PasswordInput
+//           label="Password"
+//           value={credentials.password}
+//           onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+//         />
+
+//         <button 
+//           type="submit" 
+//           disabled={loading}
+//           className="w-full bg-green-600 text-white p-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+//         >
+//           {loading ? 'Logging in...' : 'Sign in'}
+//         </button>
+//       </form>
+//     </AuthFormLayout>
+//   );
+// };
+
+// export default Login;
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 import { FiMail } from 'react-icons/fi';
+import { useAuth } from '../context/authContext';
+
 
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -118,35 +253,33 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const { login, auth } = useAuth();
 
+  const user = auth?.user
   const roles = [
     { value: 'admin', label: 'Administrator' },
     { value: 'evaluator', label: 'Evaluator' },
-    { value: 'staff', label: 'Academic Staff' }
+    { value: 'staff', label: 'Academic Staff' },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
     if (credentials.username && credentials.password && selectedRole) {
-      login({ 
-        username: credentials.username,
-        role: selectedRole,
-        id: Date.now().toString()
-      });
-
-      toast.success('Login successful!');
-      navigate(`/${selectedRole}`);
+      try {
+        const user = await login(credentials.username, credentials.password);
+        toast.success('Login successful!, navigating...');
+        navigate(`/${user.role}/dashboard`);
+      } catch (error) {
+        toast.error(error.message || 'Login failed');
+      }
     } else {
       toast.error('Please fill in all fields');
     }
   };
-
   const handleForgotPassword = (e) => {
     e.preventDefault();
     if (email) {
-      // In a real app, you would send a password reset email here
       toast.success(`Password reset link sent to ${email}`);
       setShowForgotPassword(false);
       setEmail('');
@@ -228,7 +361,9 @@ const Login = () => {
                 </select>
               </div>
               <div>
-                <label htmlFor="username" className="sr-only">Username</label>
+                <label htmlFor="username" className="sr-only">
+                  Username
+                </label>
                 <input
                   id="username"
                   name="username"
@@ -241,7 +376,9 @@ const Login = () => {
                 />
               </div>
               <div>
-                <label htmlFor="password" className="sr-only">Password</label>
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
                 <input
                   id="password"
                   name="password"

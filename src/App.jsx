@@ -6,14 +6,22 @@ import EvaluatorDashboard from './pages/evaluator/Dashboard';
 import StaffDashboard from './pages/staff/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import ChangePassword from './pages/ChangePassword';
+import Unauthorized from './components/error/unauthorized';
+import { AuthProvider } from './context/authContext';
+
 
 function App() {
   return (
     <Router>
       <Toaster position="top-right" />
+      <AuthProvider>
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* Protected Routes */}
         
         <Route path="/admin/*" element={
           <ProtectedRoute allowedRole="admin">
@@ -35,7 +43,8 @@ function App() {
         
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
-    </Router>
+      </AuthProvider>
+      </Router>
   );
 }
 
