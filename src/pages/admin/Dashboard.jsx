@@ -26,7 +26,6 @@ import PostJobForm from '../../components/dashboard/admin/PostJobForm';
 import ApplicationManagement from './application-management/ApplicationManagement';
 import EvaluationManagement from './evaluation-management/EvaluationManagement';
 
-
 const AdminDashboard = () => {
   const logout = useAuthStore((state) => state.logout);
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -52,7 +51,6 @@ const AdminDashboard = () => {
     {path: '/admin/dashboard', name: 'Overview', icon: <FiBriefcase />},
     { path: '/admin/positions', name: 'Manage Positions', icon: <FiBriefcase /> },
     { path: '/admin/applications', name: 'Manage Applications', icon: <FiFileText /> },
-
     { path: '/admin/evaluators', name: 'Manage Evaluators', icon: <FiUsers /> },
     { path: '/admin/results', name: 'Manage Results', icon: <FiClipboard /> },
     { path: '/admin/users', name: 'Manage Users', icon: <FiUser /> }
@@ -60,12 +58,12 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Green-themed header */}
+      {/* Fixed Green-themed header */}
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-green-600 p-4 shadow-lg"
+        className="bg-green-600 p-4 shadow-lg fixed w-full z-50"
       >
         <div className="flex justify-between items-center max-w-7xl mx-auto">
           <div className="flex items-center space-x-4">
@@ -222,7 +220,8 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      <div className="flex max-w-7xl mx-auto">
+      {/* Main content with padding-top to account for fixed header */}
+      <div className="flex max-w-7xl mx-auto pt-16">
         {/* Sidebar */}
         <motion.aside 
           initial={{ x: -20, opacity: 0 }}
@@ -249,7 +248,7 @@ const AdminDashboard = () => {
           </nav>
         </motion.aside>
 
-        {/* Main content */}
+        {/* Main content area */}
         <main className="flex-1 p-8">
           <AnimatePresence mode="wait">
             <motion.div
