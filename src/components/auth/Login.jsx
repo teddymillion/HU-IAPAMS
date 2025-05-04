@@ -48,7 +48,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     if (credentials.username && credentials.password && selectedRole) {
       try {
         const user = await login(credentials.username, credentials.password);
@@ -85,7 +85,7 @@ const Login = () => {
             <Typography component="h1" variant="h4" align="center" sx={{ mb: 3, fontWeight: 'bold' }}>
               HU-IAPMS
             </Typography>
-            
+
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
               <FormControl fullWidth margin="normal" required>
                 <InputLabel id="role-label">Select Role</InputLabel>
@@ -106,7 +106,7 @@ const Login = () => {
                   ))}
                 </Select>
               </FormControl>
-              
+
               <TextField
                 margin="normal"
                 required
@@ -119,7 +119,7 @@ const Login = () => {
                 value={credentials.username}
                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
               />
-              
+
               <TextField
                 margin="normal"
                 required
@@ -145,7 +145,7 @@ const Login = () => {
                   ),
                 }}
               />
-              
+
               <Grid container justifyContent="flex-end">
                 <Grid item>
                   <MuiLink component={Link} to="/forgot-password" variant="body2" color="primary">
@@ -153,7 +153,7 @@ const Login = () => {
                   </MuiLink>
                 </Grid>
               </Grid>
-              
+
               <Button
                 type="submit"
                 fullWidth
@@ -162,11 +162,15 @@ const Login = () => {
                 sx={{ mt: 3, mb: 2, py: 1.5 }}
               >
                 {isLoading ? (
-                  <CircularProgress size={24} color="inherit" />
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <span>Signing in</span>
+                    <CircularProgress size={24} color="inherit" />
+                  </Box>
                 ) : (
                   'Sign In'
                 )}
               </Button>
+
             </Box>
           </Paper>
         </Box>
