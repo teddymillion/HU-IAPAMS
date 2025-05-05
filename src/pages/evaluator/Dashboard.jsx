@@ -108,8 +108,7 @@
 
 //   const navItems = [
 //     { path: '/evaluator/applications', name: 'Evaluate Applications', icon: <FiFileText /> },
-//     { path: '/evaluator/results', name: 'Manage Results', icon: <FiBarChart2 /> },
-//     { path: '/evaluator/applicants', name: 'Applicant Profiles', icon: <FiUsers /> }
+    
 //   ];
 
 //   return (
@@ -439,9 +438,11 @@
 
 // export default EvaluatorDashboard;
 
-import { useState } from 'react';
-import { Link, useNavigate, Routes, Route } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
+
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiClipboard, 
   FiUser, 
@@ -453,33 +454,89 @@ import {
   FiX,
   FiEye,
   FiFileText,
-  FiUsers,
-  FiBarChart2
+  FiDownload,
+  FiFile,
+  FiFilePlus,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi';
-import { useAuth } from '../../context/authContext';
-
-import {  AnimatePresence } from 'framer-motion';
-// import EvaluatorApplications from './EvaluatorApplications';
-// import EvaluatorResults from './EvaluatorResults';
-// import EvaluatorApplicants from './EvaluatorApplicants';
+import useAuthStore from '../../store/authStore';
 
 const EvaluatorDashboard = () => {
-  const { auth, logout } = useAuth();
+  const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  
-  // Use actual user data from auth context
-  const userData = {
-    name: auth?.user?.name || 'Evaluator User',
-    email: auth?.user?.email || 'evaluator@example.com',
-    department: auth?.user?.department || 'Computer Science'
-  };
+  const [activeTab, setActiveTab] = useState('pending');
+  const [expandedApplications, setExpandedApplications] = useState({});
+  const [evaluationComments, setEvaluationComments] = useState({});
+  const [criteriaScores, setCriteriaScores] = useState({});
+  const [userData] = useState({
+    name: 'Evaluator User',
+    email: 'evaluator@example.com',
+    department: 'Computer Science'
+  });
 
-  const navItems = [
-    { path: 'applications', name: 'Evaluate Applications', icon: <FiFileText /> },
-   
-  ];
+  // Mock data with documents
+  const [applications, setApplications] = useState([
+    {
+      id: 1,
+      applicantName: 'John Doe',
+      position: 'Assistant Professor',
+      department: 'Computer Science',
+      status: 'pending',
+      submittedDate: '2023-06-15',
+      documents: [
+        { name: 'CV.pdf', type: 'cv', size: '2.3 MB', url: '#' },
+        { name: 'Cover_Letter.docx', type: 'coverLetter', size: '568 KB', url: '#' },
+        { name: 'Research_Portfolio.pdf', type: 'portfolio', size: '8 MB', url: '#' },
+        { name: 'Teaching_Statement.pdf', type: 'statement', size: '3.2 MB', url: '#' }
+      ],
+      criteria: [
+        { id: 'qualifications', name: 'Qualifications', score: 0, max: 5, weight: 30 },
+        { id: 'experience', name: 'Experience', score: 0, max: 5, weight: 30 },
+        { id: 'publications', name: 'Publications', score: 0, max: 5, weight: 20 },
+        { id: 'teaching', name: 'Teaching Ability', score: 0, max: 5, weight: 20 }
+      ]
+    },
+    {
+      id: 2,
+      applicantName: 'Jane Smith',
+      position: 'Lecturer',
+      department: 'Mathematics',
+      status: 'pending',
+      submittedDate: '2023-06-10',
+      documents: [
+        { name: 'Jane_Smith_CV.pdf', type: 'cv', size: '1.8 MB', url: '#' },
+        { name: 'Cover_Letter_Jane.docx', type: 'coverLetter', size: '420 KB', url: '#' },
+        { name: 'Math_Publications.pdf', type: 'portfolio', size: '5.2 MB', url: '#' }
+      ],
+      criteria: [
+        { id: 'qualifications', name: 'Qualifications', score: 0, max: 5, weight: 30 },
+        { id: 'experience', name: 'Experience', score: 0, max: 5, weight: 30 },
+        { id: 'research', name: 'Research Quality', score: 0, max: 5, weight: 20 },
+        { id: 'teaching', name: 'Teaching Ability', score: 0, max: 5, weight: 20 }
+      ]
+    }
+  ]);
+
+  // Initialize evaluation data
+  useEffect(() => {
+    const initialComments = {};
+    const initialScores = {};
+    
+    applications.forEach(app => {
+      initialComments[app.id] = '';
+      initialScores[app.id] = {};
+      
+      app.criteria.forEach(criterion => {
+        initialScores[app.id][criterion.id] = criterion.score;
+      });
+    });
+    
+    setEvaluationComments(initialComments);
+    setCriteriaScores(initialScores);
+  }, [applications]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -491,6 +548,73 @@ const EvaluatorDashboard = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  const toggleApplicationExpand = (id) => {
+    setExpandedApplications(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const handleScoreChange = (appId, criterionId, value) => {
+    setCriteriaScores(prev => ({
+      ...prev,
+      [appId]: {
+        ...prev[appId],
+        [criterionId]: parseInt(value) || 0
+      }
+    }));
+  };
+
+  const handleCommentChange = (appId, value) => {
+    setEvaluationComments(prev => ({
+      ...prev,
+      [appId]: value
+    }));
+  };
+
+  const submitEvaluation = (appId) => {
+    // Calculate total score
+    const application = applications.find(app => app.id === appId);
+    let totalScore = 0;
+    
+    application.criteria.forEach(criterion => {
+      const score = criteriaScores[appId][criterion.id];
+      totalScore += (score / criterion.max) * criterion.weight;
+    });
+    
+    // Update application status
+    const decision = totalScore >= 70 ? 'approved' : 'rejected';
+    
+    setApplications(applications.map(app => 
+      app.id === appId ? { 
+        ...app, 
+        status: decision,
+        decisionDate: new Date().toISOString().split('T')[0],
+        criteria: app.criteria.map(criterion => ({
+          ...criterion,
+          score: criteriaScores[appId][criterion.id]
+        })),
+        totalScore: Math.round(totalScore)
+      } : app
+    ));
+    
+    alert(`Evaluation submitted for ${application.applicantName}. Score: ${Math.round(totalScore)}/100 - ${decision.toUpperCase()}`);
+  };
+
+  const publishResults = () => {
+    alert('Results have been published to applicants!');
+  };
+
+  const filteredApplications = applications.filter(app => 
+    activeTab === 'pending' ? app.status === 'pending' : 
+    activeTab === 'approved' ? app.status === 'approved' :
+    app.status === 'rejected'
+  );
+
+  const navItems = [
+    { path: '/evaluator/applications', name: 'Evaluate Applications', icon: <FiFileText /> },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -683,21 +807,194 @@ const EvaluatorDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white shadow rounded-lg p-6 min-h-[calc(100vh-180px)]"
+            className="bg-white shadow rounded-lg p-6"
           >
-            <Routes>
-              {/* <Route path="applications" element={<EvaluatorApplications />} />
-              <Route path="results" element={<EvaluatorResults />} />
-              <Route path="applicants" element={<EvaluatorApplicants />} /> */}
-              <Route path="/" element={
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-700 mb-2">Welcome, Evaluator!</h2>
-                    <p className="text-gray-500">Select an option from the sidebar to get started.</p>
-                  </div>
-                </div>
-              } />
-            </Routes>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Application Evaluations</h2>
+              {activeTab !== 'pending' && (
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-2 bg-green-600 rounded-md text-sm font-medium text-white hover:bg-green-700"
+                  onClick={publishResults}
+                >
+                  Publish Results to Applicants
+                </motion.button>
+              )}
+            </div>
+
+            {/* Evaluation tabs */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('pending')}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'pending' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                >
+                  Pending Evaluation
+                </button>
+                <button
+                  onClick={() => setActiveTab('approved')}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'approved' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                >
+                  Approved
+                </button>
+                <button
+                  onClick={() => setActiveTab('rejected')}
+                  className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'rejected' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                >
+                  Rejected
+                </button>
+              </nav>
+            </div>
+
+            {/* Applications list */}
+            {filteredApplications.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No {activeTab} applications found.</p>
+            ) : (
+              <div className="space-y-6">
+                {filteredApplications.map((application) => (
+                  <motion.div
+                    key={application.id}
+                    whileHover={{ scale: 1.005 }}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <div 
+                      className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer"
+                      onClick={() => toggleApplicationExpand(application.id)}
+                    >
+                      <div>
+                        <h3 className="font-medium text-lg">{application.applicantName}</h3>
+                        <p className="text-sm text-gray-600">{application.position} - {application.department}</p>
+                      </div>
+                      <div className="flex items-center">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                        </span>
+                        {expandedApplications[application.id] ? (
+                          <FiChevronUp className="ml-2 text-gray-500" />
+                        ) : (
+                          <FiChevronDown className="ml-2 text-gray-500" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {expandedApplications[application.id] && (
+                      <div className="p-4">
+                        {/* Documents section */}
+                        <div className="mb-6">
+                          <h4 className="font-medium text-gray-700 mb-3">Application Documents</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            {application.documents.map((doc, index) => (
+                              <div key={index} className="border rounded-md p-3 hover:bg-gray-50 transition-colors">
+                                <div className="flex items-start">
+                                  <FiFile className="text-green-600 mt-1 mr-2 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{doc.name}</p>
+                                    <p className="text-xs text-gray-500">{doc.size}</p>
+                                  </div>
+                                </div>
+                                <div className="mt-2 flex justify-end">
+                                  <a 
+                                    href={doc.url} 
+                                    download
+                                    className="text-sm text-green-600 hover:text-green-800 flex items-center"
+                                  >
+                                    <FiDownload className="mr-1" /> Download
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Evaluation criteria */}
+                        <div className="mb-6">
+                          <h4 className="font-medium text-gray-700 mb-3">Evaluation Criteria</h4>
+                          <div className="space-y-4">
+                            {application.criteria.map((criterion) => (
+                              <div key={criterion.id} className="border rounded-md p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-medium">{criterion.name}</span>
+                                  <span className="text-sm text-gray-500">Weight: {criterion.weight}%</span>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                  <div className="flex-1">
+                                    <input
+                                      type="range"
+                                      min="0"
+                                      max={criterion.max}
+                                      value={criteriaScores[application.id]?.[criterion.id] || 0}
+                                      onChange={(e) => handleScoreChange(application.id, criterion.id, e.target.value)}
+                                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                  </div>
+                                  <div className="w-16 text-center">
+                                    <span className="font-medium">
+                                      {criteriaScores[application.id]?.[criterion.id] || 0}/{criterion.max}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Comments */}
+                        <div className="mb-6">
+                          <h4 className="font-medium text-gray-700 mb-2">Evaluation Comments</h4>
+                          <textarea
+                            value={evaluationComments[application.id] || ''}
+                            onChange={(e) => handleCommentChange(application.id, e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            rows="4"
+                            placeholder="Enter your detailed evaluation comments..."
+                          />
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex justify-between items-center pt-4 border-t">
+                          <div>
+                            <p className="text-xs text-gray-500">Submitted: {application.submittedDate}</p>
+                            {application.decisionDate && (
+                              <p className="text-xs text-gray-500">Decision: {application.decisionDate}</p>
+                            )}
+                          </div>
+                          
+                          {application.status === 'pending' ? (
+                            <div className="space-x-3">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+                                onClick={() => submitEvaluation(application.id)}
+                              >
+                                Submit Evaluation
+                              </motion.button>
+                            </div>
+                          ) : (
+                            <div className="space-x-3">
+                              <span className="font-medium">
+                                Final Score: {application.totalScore}/100
+                              </span>
+                              <button
+                                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+                                onClick={() => navigate(`/applicant/results/${application.id}`)}
+                              >
+                                <FiEye className="inline mr-1" /> View as Applicant
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </main>
       </div>
