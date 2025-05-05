@@ -478,8 +478,7 @@ const EvaluatorDashboard = () => {
 
   const navItems = [
     { path: 'applications', name: 'Evaluate Applications', icon: <FiFileText /> },
-    { path: 'results', name: 'Manage Results', icon: <FiBarChart2 /> },
-    { path: 'applicants', name: 'Applicant Profiles', icon: <FiUsers /> }
+   
   ];
 
   const handleFileChange = (e) => {
