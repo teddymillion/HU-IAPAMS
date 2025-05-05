@@ -172,7 +172,7 @@ const AvailablePositions = () => {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Box sx={{ mb: 4, }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" color="green">
+        <Typography variant="h4" component="h1" fontWeight="bold" >
           Available Positions
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">

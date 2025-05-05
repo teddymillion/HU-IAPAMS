@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     { path: '/admin/positions', name: 'Manage Positions', icon: <FiBriefcase /> },
     { path: '/admin/applications', name: 'Manage Applications', icon: <FiFileText /> },
     { path: '/admin/evaluators', name: 'Manage Evaluators', icon: <FiUsers /> },
-    { path: '/admin/results', name: 'Manage Results', icon: <FiClipboard /> },
+
     { path: '/admin/users', name: 'Manage Users', icon: <FiUser /> }
   ];
 
