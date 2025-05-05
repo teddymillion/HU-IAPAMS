@@ -16,7 +16,9 @@ export const DashboardLayout = ({
   const [userData, setUserData] = useState({
     name: user?.fullName || user?.username || 'User',
     email: user?.email || 'user@example.com',
-    role: user?.role || 'User'
+    role: user?.role || 'User',
+    profilePhoto:user?.profilePhoto,
+
   });
 
   const handleFileChange = (e) => {

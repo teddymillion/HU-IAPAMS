@@ -73,7 +73,7 @@ export const Header = ({
 
           <IconButton onClick={handleMenu} color="inherit">
             <Avatar
-              src={profilePhoto}
+              src={user?.profilePhoto}
               alt="Profile"
               sx={{ width: 36, height: 36, bgcolor: 'green.500' }}
             >
@@ -95,7 +95,7 @@ export const Header = ({
             <Box px={2} py={1.5}>
               <Box display="flex" alignItems="center">
                 <Avatar
-                  src={profilePhoto}
+                  src={user?.profilePhoto}
                   alt="Profile"
                   sx={{ width: 48, height: 48, mr: 1 }}
                 >
