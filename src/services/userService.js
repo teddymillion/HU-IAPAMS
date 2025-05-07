@@ -54,7 +54,6 @@ export const updateUserData = async (data, token) => {
     try {
         const payload = {
             role: data.role,
-            is_deleted: data.is_deleted,
             status: data.status,
             contact_number: data.contact_number,
         };
@@ -172,4 +171,37 @@ export const changePassword = async (data, token) => {
             error: error.response?.data || { message: 'An unknown error occurred' },
         };
     }
+};
+
+
+
+export const getMyApplications = async (token) => {
+  try {
+    const res = await api.get('/applications', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return { success: true, data: res.data };
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+    return { 
+      success: false, 
+      error: error.response?.data || { message: 'Failed to get applications' } 
+    };
+  }
+};
+
+export const getUserProfile = async (token) => {
+  try {
+    const res = await api.get('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('User profile response:', res.data);
+    return { success: true, data: res.data };
+  } catch (error) {
+    console.error('getUserProfile error:', error);
+    toast.error(error.response?.data?.message || 'Failed to fetch profile');
+    return { success: false, data: null };
+  }
 };
