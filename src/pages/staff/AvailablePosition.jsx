@@ -23,7 +23,8 @@ import {
   Alert,
   Tabs,
   Tab,
-  MenuItem
+  MenuItem,
+  Link
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -37,10 +38,7 @@ import {
 import toast from 'react-hot-toast';
 import { getPositions } from '../../services/positionService';
 import { useAuth } from '../../context/authContext';
-import { getMyApplications ,applyToPosition} from '../../services/applicationService';
-
-
-
+import { getMyApplications, applyToPosition } from '../../services/applicationService';
 
 const AvailablePositions = () => {
   const { auth } = useAuth();
@@ -59,7 +57,6 @@ const AvailablePositions = () => {
     certificates: []
   });
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -68,48 +65,61 @@ const AvailablePositions = () => {
     setIsLoading(true);
     try {
       const [positionsRes, applicationsRes] = await Promise.all([
-        getPositions({ status: 'open' }, auth.tokens.accessToken),
-        getMyApplications(auth.tokens.accessToken)
+        getPositions({ status: 'open' }, auth.tokens.accessToken).catch(err => {
+          console.error('Positions fetch error:', err);
+          return { success: false, data: [] };
+        }),
+        getMyApplications(auth.tokens.accessToken).catch(err => {
+          console.error('Applications fetch error:', err);
+          return { success: false, data: [] };
+        })
       ]);
 
-      if (positionsRes.success) setPositions(positionsRes.data);
-      if (applicationsRes.success) {
-        setApplications(Array.isArray(applicationsRes.data) ? applicationsRes.data : []);
+      if (positionsRes.success) {
+        console.log('Positions response:', positionsRes);
+        setPositions([...positionsRes.data]);
+      } else {
+        console.error('Positions fetch failed:', positionsRes);
       }
-      
+
+      if (applicationsRes.success) {
+        console.log('Applications response:', applicationsRes);
+        const apps = Array.isArray(applicationsRes.data.data) ? [...applicationsRes.data.data] : [];
+        console.log('Applications to set:', apps);
+        setApplications(apps);
+      } else {
+        console.error('Applications fetch failed:', applicationsRes);
+        setApplications([]);
+      }
+
       setIsLoading(false);
     } catch (error) {
+      console.error('Fetch error:', error);
       toast.error('Failed to load data');
       setIsLoading(false);
     }
   };
 
-  // Filter positions based on search, filters and tab
   useEffect(() => {
+    console.log('Filtering with:', { positions, applications, searchTerm, departmentFilter, tabValue });
     let result = positions;
-    
-    // Filter by search term
     if (searchTerm) {
-      result = result.filter(p => 
+      result = result.filter(p =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    // Filter by department
     if (departmentFilter !== 'all') {
       result = result.filter(p => p.department === departmentFilter);
     }
-    
-    // Filter by tab
     if (tabValue === 'applied') {
-      const appliedPositionIds = applications?.map(a => a.position._id);
+      const appliedPositionIds = applications.map(a => a.position._id);
       result = result.filter(p => appliedPositionIds.includes(p._id));
     } else if (tabValue === 'eligible') {
-      const appliedPositionIds = applications?.map(a => a.position._id);
+      const appliedPositionIds = applications.map(a => a.position._id);
       result = result.filter(p => !appliedPositionIds.includes(p._id));
     }
-    
+    // console.log('Filtered positions:', result);
     setFilteredPositions(result);
   }, [positions, applications, searchTerm, departmentFilter, tabValue]);
 
@@ -118,37 +128,37 @@ const AvailablePositions = () => {
       toast.error('CV is required');
       return;
     }
-
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append('position', positionId);
-      formData.append('documents.cv', files.cv);
-      if (files.coverLetter) formData.append('documents.coverLetter', files.coverLetter);
+      formData.append('cv', files.cv);
+      if (files.coverLetter) formData.append('coverLetter', files.coverLetter);
       files.certificates.forEach(cert => {
-        formData.append('documents.certificates', cert);
+        formData.append('certificates', cert);
       });
-
-      console.log('Form Data:', formData); // Debugging line
+      console.log('Form Data prepared:', { positionId, cv: files.cv?.name, coverLetter: files.coverLetter?.name, certificates: files.certificates.map(c => c.name) });
+  
       const res = await applyToPosition(formData, auth.tokens.accessToken);
+      console.log('Apply response:', res);
       if (res.success) {
         toast.success('Application submitted successfully!');
         setOpenDialog(false);
-        fetchData(); // Refresh data
+        setFiles({ cv: null, coverLetter: null, certificates: [] });
+        fetchData();
       }
     } catch (error) {
+      console.error('handleApply error:', error);
       toast.error(error.response?.data?.message || 'Failed to submit application');
     } finally {
       setIsLoading(false);
     }
   };
-
   const getApplicationStatus = (positionId) => {
     if (!Array.isArray(applications)) return null;
-    
     const application = applications.find(a => a.position?._id === positionId);
+    // console.log(`Checking status for position ${positionId}:`, application);
     if (!application) return null;
-    
     switch (application.status) {
       case 'pending': return { text: 'Applied', color: 'warning' };
       case 'under_review': return { text: 'Under Review', color: 'info' };
@@ -158,21 +168,27 @@ const AvailablePositions = () => {
     }
   };
 
+  const getApplicationDetails = (positionId) => {
+    if (!Array.isArray(applications)) return null;
+    return applications.find(a => a.position?._id === positionId) || null;
+  };
+
   const departments = [
     'all',
-    'engineering', 
-    'hr', 
-    'finance', 
-    'it', 
-    'research', 
+    'product',
+    'Computer Science',
+    'engineering',
+    'hr',
+    'finance',
+    'it',
+    'research',
     'quality'
   ];
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4, }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" >
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold" color="green">
           Available Positions
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
@@ -180,7 +196,6 @@ const AvailablePositions = () => {
         </Typography>
       </Box>
 
-      {/* Filters */}
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={6}>
@@ -240,10 +255,9 @@ const AvailablePositions = () => {
         </Grid>
       </Paper>
 
-      {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs 
-          value={tabValue} 
+        <Tabs
+          value={tabValue}
           onChange={(e, newValue) => setTabValue(newValue)}
           variant="scrollable"
           scrollButtons="auto"
@@ -254,25 +268,22 @@ const AvailablePositions = () => {
         </Tabs>
       </Box>
 
-      {/* Loading State */}
       {isLoading && (
         <Box display="flex" justifyContent="center" my={4}>
           <CircularProgress />
         </Box>
       )}
 
-      {/* No Results */}
       {!isLoading && filteredPositions.length === 0 && (
         <Paper elevation={0} sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">
-            {tabValue === 'applied' 
+            {tabValue === 'applied'
               ? "You haven't applied to any positions yet"
               : "No available positions match your criteria"}
           </Typography>
         </Paper>
       )}
 
-      {/* Positions Grid */}
       <Grid container spacing={3}>
         {filteredPositions && filteredPositions.map((position) => {
           const applicationStatus = getApplicationStatus(position._id);
@@ -280,10 +291,10 @@ const AvailablePositions = () => {
 
           return (
             <Grid item key={position._id} xs={12} sm={6} md={4}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
+              <Card
+                sx={{
+                  height: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.3s, box-shadow 0.3s',
                   '&:hover': {
@@ -294,10 +305,10 @@ const AvailablePositions = () => {
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Chip 
-                      label={position.department} 
-                      size="small" 
-                      color="primary" 
+                    <Chip
+                      label={position.department}
+                      size="small"
+                      color="primary"
                       variant="outlined"
                     />
                     <Box>
@@ -327,8 +338,8 @@ const AvailablePositions = () => {
                   </Typography>
 
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    {position.description.length > 150 
-                      ? `${position.description.substring(0, 150)}...` 
+                    {position.description.length > 150
+                      ? `${position.description.substring(0, 150)}...`
                       : position.description}
                   </Typography>
 
@@ -361,11 +372,12 @@ const AvailablePositions = () => {
                         setSelectedPosition(position);
                         setOpenDialog(true);
                       }}
-                      sx={{ ml: 'auto',
-                        bgcolor:'green',
+                      sx={{
+                        ml: 'auto',
+                        bgcolor: 'green',
                         opacity: 0.9,
                         '&:hover': { bgcolor: 'green', opacity: 1 },
-                       }}
+                      }}
                     >
                       Apply Now
                     </Button>
@@ -377,16 +389,15 @@ const AvailablePositions = () => {
         })}
       </Grid>
 
-      {/* Position Details Dialog */}
-      <Dialog 
-        open={openDialog} 
+      <Dialog
+        open={openDialog}
         onClose={() => setOpenDialog(false)}
         maxWidth="md"
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: 'primary.main', 
+        <DialogTitle sx={{
+          bgcolor: 'primary.main',
           color: 'white',
           display: 'flex',
           justifyContent: 'space-between',
@@ -401,7 +412,7 @@ const AvailablePositions = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        
+
         <DialogContent dividers sx={{ p: 3 }}>
           {selectedPosition && (
             <Grid container spacing={3}>
@@ -416,7 +427,7 @@ const AvailablePositions = () => {
                   Deadline: {new Date(selectedPosition.deadline).toLocaleDateString()}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
@@ -426,7 +437,7 @@ const AvailablePositions = () => {
                   {selectedPosition.description}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Requirements
@@ -439,12 +450,60 @@ const AvailablePositions = () => {
                   ))}
                 </Box>
               </Grid>
-              
+
               {getApplicationStatus(selectedPosition._id) && (
                 <Grid item xs={12}>
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    You've already applied to this position. Status: {getApplicationStatus(selectedPosition._id).text}
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
+                    Your Application
+                  </Typography>
+                  <Alert severity={getApplicationStatus(selectedPosition._id).color} sx={{ mb: 2 }}>
+                    Status: {getApplicationStatus(selectedPosition._id).text}
                   </Alert>
+                  {(() => {
+                    const application = getApplicationDetails(selectedPosition._id);
+                    return (
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                          Applied At: {new Date(application.appliedAt).toLocaleString()}
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                          Applicant: {application.applicant.username} ({application.applicant.email})
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                          Documents:
+                        </Typography>
+                        <Box component="ul" sx={{ pl: 2 }}>
+                          {application.documents.cv && (
+                            <Box component="li" sx={{ mb: 1 }}>
+                              <Link href={application.documents.cv} target="_blank" rel="noopener">
+                                View CV
+                              </Link>
+                            </Box>
+                          )}
+                          {application.documents.coverLetter && (
+                            <Box component="li" sx={{ mb: 1 }}>
+                              <Link href={application.documents.coverLetter} target="_blank" rel="noopener">
+                                View Cover Letter
+                              </Link>
+                            </Box>
+                          )}
+                          {application.documents.certificates && application.documents.certificates.length > 0 ? (
+                            application.documents.certificates.map((cert, i) => (
+                              <Box component="li" key={i} sx={{ mb: 1 }}>
+                                <Link href={cert} target="_blank" rel="noopener">
+                                  View Certificate {i + 1}
+                                </Link>
+                              </Box>
+                            ))
+                          ) : (
+                            <Box component="li" sx={{ mb: 1 }}>
+                              <Typography>No certificates uploaded</Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  })()}
                 </Grid>
               )}
 
@@ -453,19 +512,19 @@ const AvailablePositions = () => {
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
                     Apply for this Position
                   </Typography>
-                  
+
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" gutterBottom>
                       Required Documents
                     </Typography>
-                    
+
                     <Box sx={{ mb: 3 }}>
                       <input
                         accept=".pdf,.doc,.docx"
                         style={{ display: 'none' }}
                         id="cv-upload"
                         type="file"
-                        onChange={(e) => setFiles({...files, cv: e.target.files[0]})}
+                        onChange={(e) => setFiles({ ...files, cv: e.target.files[0] })}
                       />
                       <label htmlFor="cv-upload">
                         <Button
@@ -483,14 +542,14 @@ const AvailablePositions = () => {
                         </Typography>
                       )}
                     </Box>
-                    
+
                     <Box sx={{ mb: 3 }}>
                       <input
                         accept=".pdf,.doc,.docx"
                         style={{ display: 'none' }}
                         id="cover-letter-upload"
                         type="file"
-                        onChange={(e) => setFiles({...files, coverLetter: e.target.files[0]})}
+                        onChange={(e) => setFiles({ ...files, coverLetter: e.target.files[0] })}
                       />
                       <label htmlFor="cover-letter-upload">
                         <Button
@@ -508,7 +567,7 @@ const AvailablePositions = () => {
                         </Typography>
                       )}
                     </Box>
-                    
+
                     <Box sx={{ mb: 3 }}>
                       <input
                         accept=".pdf,.jpg,.jpeg,.png"
@@ -516,7 +575,7 @@ const AvailablePositions = () => {
                         id="certificates-upload"
                         type="file"
                         multiple
-                        onChange={(e) => setFiles({...files, certificates: [...e.target.files]})}
+                        onChange={(e) => setFiles({ ...files, certificates: [...e.target.files] })}
                       />
                       <label htmlFor="certificates-upload">
                         <Button
@@ -540,33 +599,33 @@ const AvailablePositions = () => {
             </Grid>
           )}
         </DialogContent>
-        
+
         <DialogActions sx={{ p: 3 }}>
-          <Button 
+          <Button
             onClick={() => setOpenDialog(false)}
-            sx={{ 
+            sx={{
               color: 'text.secondary',
               '&:hover': { bgcolor: 'action.hover' }
             }}
           >
             Close
           </Button>
-          
-          {!getApplicationStatus(selectedPosition?._id) && 
+
+          {!getApplicationStatus(selectedPosition?._id) &&
             new Date(selectedPosition?.deadline) >= new Date() && (
-            <Button 
-              variant="contained"
-              onClick={() => handleApply(selectedPosition._id)}
-              disabled={!files.cv || isLoading}
-              sx={{
-                bgcolor: 'primary.main',
-                '&:hover': { bgcolor: 'primary.dark' },
-                '&:disabled': { bgcolor: 'action.disabled' }
-              }}
-            >
-              {isLoading ? <CircularProgress size={24} color="inherit" /> : `Submit Application`}
-            </Button>
-          )}
+              <Button
+                variant="contained"
+                onClick={() => handleApply(selectedPosition._id)}
+                disabled={!files.cv || isLoading}
+                sx={{
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:disabled': { bgcolor: 'action.disabled' }
+                }}
+              >
+                {isLoading ? <CircularProgress size={24} color="inherit" /> : `Submit Application`}
+              </Button>
+            )}
         </DialogActions>
       </Dialog>
     </Container>
