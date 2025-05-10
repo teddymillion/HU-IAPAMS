@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Card, 
-  CardContent, 
-  Grid, 
-  Paper, 
+import {
+  Container,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Paper,
   Divider,
   TextField,
   Button,
@@ -26,13 +26,14 @@ import {
   Badge,
   Stack
 } from '@mui/material';
-import { 
+import {
   Download as DownloadIcon,
   Check as CheckIcon,
   Close as CloseIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
-  Refresh
+  Refresh,
+  RefreshOutlined
 } from '@mui/icons-material';
 import { useAuth } from '../../context/authContext';
 import { getUserProfile, submitEvaluation, getEvaluations } from '../../services/applicationService';
@@ -55,21 +56,21 @@ const EvaluationPage = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(''); // 'details', 'evaluate', 'summary'
-  
-  const {auth} = useAuth();
+
+  const { auth } = useAuth();
 
   useEffect(() => {
     const token = auth?.tokens?.accessToken;
-    
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         const profileRes = await getUserProfile(token);
         if (profileRes.success) {
           setUserProfile(profileRes.data);
         }
-        
+
         // Get applications to evaluate
         const evalRes = await getEvaluations(token);
         if (evalRes.success) {
@@ -91,11 +92,11 @@ const EvaluationPage = () => {
     if (!app.averageScore && app.averageScore !== 0) {
       return 'not-evaluated';
     }
-    
+
     if (app.averageScore >= 7) {
       return 'accepted';
     } else if (app.averageScore >= 4) {
-      return 'pending'; 
+      return 'pending';
     } else {
       return 'rejected';
     }
@@ -137,19 +138,19 @@ const EvaluationPage = () => {
 
   const handleSubmitEvaluation = async () => {
     if (!selectedApp) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const res = await submitEvaluation(
         selectedApp._id,
         { scores, comments },
         auth?.tokens?.accessToken
       );
-      
+
       if (res.success) {
         // Update UI with new evaluation
-        const updatedApps = applications.map(app => 
+        const updatedApps = applications.map(app =>
           app._id === selectedApp._id ? res.data : app
         );
         setApplications(updatedApps);
@@ -204,7 +205,7 @@ const EvaluationPage = () => {
       <Typography variant="h4" gutterBottom>
         Evaluator Dashboard
       </Typography>
-      
+
       <Grid container spacing={3}>
         {/* Application List */}
         <Grid item xs={12}>
@@ -213,7 +214,7 @@ const EvaluationPage = () => {
               Applications to Evaluate
             </Typography>
             <Divider sx={{ my: 2 }} />
-            
+
             <Grid container spacing={2}>
               {applications?.map(app => (
                 <Grid item xs={12} sm={6} md={4} key={app._id}>
@@ -231,58 +232,60 @@ const EvaluationPage = () => {
                       <Typography variant="body2" color="text.secondary">
                         Applied: {new Date(app.appliedAt).toLocaleDateString()}
                       </Typography>
-                      
-                      <Box sx={{ 
-                        display: 'flex', 
+                      <Box sx={{
+                        display: 'flex',
                         justifyContent: 'space-between',
                         mt: 2,
-                        gap: 1
+                        gap: 1,
+                        alignItems: 'center'
                       }}>
-                        <Button 
-                          size="small" 
+                        <Button
+                          size="small"
                           startIcon={<VisibilityIcon />}
                           onClick={() => handleOpenDialog('details', app)}
                         >
                           Details
                         </Button>
-                        
-                        <Badge 
-                          color={hasEvaluated(app) ? "success" : "warning"} 
-                          variant="dot"
-                          overlap="circular"
-                        >
-                          <Button 
-                            size="small" 
-                            variant={hasEvaluated(app) ? "outlined" : "contained"}
-                            color={hasEvaluated(app) ? "success" : "primary"}
-                            startIcon={hasEvaluated(app) ? <CheckIcon /> : <EditIcon />}
+
+                        {hasEvaluated(app) ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip
+                              label="Evaluated"
+                              color="success"
+                              size="small"
+                              icon={<CheckIcon fontSize="small" />}
+                              sx={{ cursor: 'pointer' }}
+                              onClick={() => handleOpenDialog('evaluate', app)}
+                            />
+                            <IconButton
+                              size="small"
+                              color="secondary"
+                              onClick={() => handleOpenDialog('evaluate', app)}
+                              aria-label="re-evaluate"
+                            >
+                              <RefreshOutlined fontSize="small" /> Evaluate
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<EditIcon />}
                             onClick={() => handleOpenDialog('evaluate', app)}
-                            disabled={hasEvaluated(app)}
                           >
-                            {hasEvaluated(app) ? "Evaluated" : "Evaluate"}
+                            Evaluate
                           </Button>
-                        </Badge>
-                        {/* re-evaluate if evaluated */}
-                        <Button 
-                          size="small" 
-                          variant="outlined" 
-                          color="secondary"
-                          startIcon={<Refresh />}
-                          onClick={() => handleOpenDialog('evaluate', app)}
-                        >
-                          Re-evaluate
-                        </Button>
-                        
-                        <Button 
-                          size="small" 
+                        )}
+
+                        <Button
+                          size="small"
                           onClick={() => handleOpenDialog('summary', app)}
                         >
                           Summary
                         </Button>
                       </Box>
 
-                      {/* --------- */}
-                     
                     </CardContent>
                   </Card>
                 </Grid>
@@ -321,7 +324,7 @@ const EvaluationPage = () => {
               <Typography>
                 <strong>Email:</strong> {selectedApp.applicant.email}
               </Typography>
-              
+
               <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
                 Position Information
               </Typography>
@@ -331,13 +334,13 @@ const EvaluationPage = () => {
               <Typography>
                 <strong>Department:</strong> {selectedApp.position.department}
               </Typography>
-              
+
               <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
                 Application Documents
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   startIcon={<DownloadIcon />}
                   href={selectedApp.documents.cv}
                   target="_blank"
@@ -345,8 +348,8 @@ const EvaluationPage = () => {
                   Download CV
                 </Button>
                 {selectedApp.documents.coverLetter && (
-                  <Button 
-                    variant="outlined" 
+                  <Button
+                    variant="outlined"
                     startIcon={<DownloadIcon />}
                     href={selectedApp.documents.coverLetter}
                     target="_blank"
@@ -355,9 +358,9 @@ const EvaluationPage = () => {
                   </Button>
                 )}
                 {selectedApp.documents.certificates?.map((cert, index) => (
-                  <Button 
+                  <Button
                     key={index}
-                    variant="outlined" 
+                    variant="outlined"
                     startIcon={<DownloadIcon />}
                     href={cert}
                     target="_blank"
@@ -400,7 +403,7 @@ const EvaluationPage = () => {
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Applicant: {selectedApp.applicant.username}
               </Typography>
-              
+
               <Box sx={{ mt: 3 }}>
                 <Typography component="legend">Experience</Typography>
                 <Rating
@@ -411,7 +414,7 @@ const EvaluationPage = () => {
                   precision={0.5}
                 />
               </Box>
-              
+
               <Box sx={{ mt: 3 }}>
                 <Typography component="legend">Education</Typography>
                 <Rating
@@ -422,7 +425,7 @@ const EvaluationPage = () => {
                   precision={0.5}
                 />
               </Box>
-              
+
               <Box sx={{ mt: 3 }}>
                 <Typography component="legend">Skills</Typography>
                 <Rating
@@ -433,7 +436,7 @@ const EvaluationPage = () => {
                   precision={0.5}
                 />
               </Box>
-              
+
               <TextField
                 label="Comments"
                 multiline
@@ -487,9 +490,9 @@ const EvaluationPage = () => {
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Applicant: {selectedApp.applicant.username}
               </Typography>
-              
-              <Box sx={{ 
-                display: 'flex', 
+
+              <Box sx={{
+                display: 'flex',
                 alignItems: 'center',
                 gap: 2,
                 my: 2,
@@ -503,31 +506,31 @@ const EvaluationPage = () => {
                 <Box>
                   <Typography variant="body2">Average Score</Typography>
                   <Typography variant="body2">
-                    Status: 
-                    <Chip 
-                      label={selectedApp.status} 
-                      size="small" 
+                    Status:
+                    <Chip
+                      label={selectedApp.status}
+                      size="small"
                       color={
-                        selectedApp.status === 'accepted' ? 'success' : 
-                        selectedApp.status === 'rejected' ? 'error' : 'warning'
+                        selectedApp.status === 'accepted' ? 'success' :
+                          selectedApp.status === 'rejected' ? 'error' : 'warning'
                       }
                       sx={{ ml: 1 }}
                     />
                   </Typography>
                 </Box>
               </Box>
-              
+
               <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
                 Evaluator Feedback
               </Typography>
-              
+
               {selectedApp.evaluations?.length > 0 ? (
                 <List>
                   {selectedApp.evaluations.map((evalItem, index) => (
                     <ListItem key={index} divider>
                       <Box sx={{ width: '100%' }}>
-                        <Box sx={{ 
-                          display: 'flex', 
+                        <Box sx={{
+                          display: 'flex',
                           alignItems: 'center',
                           gap: 2,
                           mb: 1
@@ -542,8 +545,8 @@ const EvaluationPage = () => {
                             {new Date(evalItem.submittedAt).toLocaleDateString()}
                           </Typography>
                         </Box>
-                        
-                        <Box sx={{ 
+
+                        <Box sx={{
                           display: 'flex',
                           gap: 3,
                           my: 1
@@ -558,9 +561,9 @@ const EvaluationPage = () => {
                             <strong>Skills:</strong> {evalItem.scores.skills}
                           </Typography>
                         </Box>
-                        
+
                         {evalItem.comments && (
-                          <Box sx={{ 
+                          <Box sx={{
                             mt: 1,
                             p: 2,
                             backgroundColor: '#f9f9f9',
