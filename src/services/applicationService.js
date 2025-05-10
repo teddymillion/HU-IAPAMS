@@ -73,16 +73,51 @@ export const getUserStats = async (token) => {
   }
 };
 
+// export const getEvaluations = async (token) => {
+//   try {
+//     const res = await api.get('/applications/evaluations', {
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+//     console.log('Evaluations response:', res.data);
+//     return { success: true, data: res.data };
+//   } catch (error) {
+//     console.error('getEvaluations error:', error);
+//     toast.error(error.response?.data?.message || 'Failed to fetch evaluations');
+//     return { success: false, data: [] };
+//   }
+// };
+
+// Add these new functions to your existing application.api.js
+
 export const getEvaluations = async (token) => {
   try {
-    const res = await api.get('/applications/evaluations', {
+    const res = await api.get('/applications', {
+      params: { evaluatorView: true },
       headers: { Authorization: `Bearer ${token}` }
     });
-    console.log('Evaluations response:', res.data);
     return { success: true, data: res.data };
   } catch (error) {
     console.error('getEvaluations error:', error);
-    toast.error(error.response?.data?.message || 'Failed to fetch evaluations');
-    return { success: false, data: [] };
+    return { 
+      success: false, 
+      error: error.response?.data || { message: 'Failed to get evaluations' } 
+    };
+  }
+};
+
+export const submitEvaluation = async (applicationId, evaluationData, token) => {
+  try {
+    const res = await api.post(
+      `/applications/${applicationId}/evaluate`,
+      evaluationData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return { success: true, data: res.data };
+  } catch (error) {
+    console.error('submitEvaluation error:', error);
+    return {
+      success: false,
+      error: error.response?.data || { message: 'Failed to submit evaluation' }
+    };
   }
 };
