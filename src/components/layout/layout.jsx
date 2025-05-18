@@ -150,15 +150,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
-import { ProfileEditModal } from "./ProfileEditModal";
 import { getUserProfile, updateUserProfile } from '../../services/userService';
 import toast from 'react-hot-toast';
-
+import { ProfileEditModal } from "./ProfileEditModal";
 export const DashboardLayout = ({ 
   title, 
   navLinks, 
   children,
-  user, // Basic user info from localStorage
+  user,
   onLogout,
   token
 }) => {
