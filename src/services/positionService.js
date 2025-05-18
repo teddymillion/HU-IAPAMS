@@ -8,10 +8,8 @@ export const createPosition = async (positionData, token) => {
         Authorization: `Bearer ${token}`
       }
     });
-    toast.success("Position created successfully!");
     return { success: true, data: res.data };
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
     return { 
       success: false, 
       error: error.response?.data || { message: 'Failed to create position' } 

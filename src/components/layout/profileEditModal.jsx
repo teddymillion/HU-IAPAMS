@@ -78,11 +78,48 @@ export const ProfileEditModal = ({
   };
 
   const handleRemoveItem = (field, index) => {
-    const updatedArray = [...userData[field]];
-    updatedArray.splice(index, 1);
-    onSave({ ...userData, [field]: updatedArray });
+    setUserData(prev => {
+      const updatedArray = [...prev[field]];
+      updatedArray.splice(index, 1);
+      return {
+        ...prev,
+        [field]: updatedArray
+      };
+    });
   };
 
+  // const handleSave = () => {
+  //   onSave(userData);
+
+  // };
+
+const handleSave = () => {
+  // Ensure all array fields exist and are arrays
+  const payload = {
+    ...userData,
+    education: userData?.education || [],
+    experience: userData?.experience || [],
+    skills: userData?.skills || [],
+    socialMedia: userData?.socialMedia || {}
+  };
+  
+  // Debug before sending
+  console.log('Saving payload:', payload);
+  
+  onSave(payload);
+};
+   if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+          </div>
+          <p className="text-center text-gray-600">Loading profile data...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <AnimatePresence>
       {isOpen && (

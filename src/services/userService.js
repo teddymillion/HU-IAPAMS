@@ -50,51 +50,79 @@ export const createUser = async (data, token, isPublicRegistration = false) => {
     }
 }
 
-export const updateUserData = async (data, token) => {
-    try {
-        const payload = {
-            role: data.role,
-            status: data.status,
-            contact_number: data.contact_number,
-        };
 
-        const res = await api.put(`/auth/users/${data.id}`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
 
-        if (!res.data.success) {
-            throw new Error(res.data.message || 'Update failed');
-        }
 
-        toast.success(res.data.message);
-        return { success: true, data: res.data.data };
-    } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
-        return { 
-            success: false, 
-            error: error.response?.data || { message: 'An unknown error occurred' } 
-        };
+export const updateUserProfile = async (data, token) => {
+  try {
+    const formData = new FormData();
+    
+    // Append all simple fields
+    const simpleFields = [
+      'fullName', 'email', 'phone', 'department', 
+      'positionType', 'bio', 'address', 'website'
+    ];
+    
+    simpleFields.forEach(field => {
+      if (data[field] !== undefined) {
+        formData.append(field, data[field] || '');
+      }
+    });
+
+    // Handle complex fields - ensure they're always arrays
+    // const arrayFields = ['education', 'experience', 'skills'];
+    // arrayFields.forEach(field => {
+    //   const fieldData = Array.isArray(data[field]) ? data[field] : [];
+    //   formData.append(field, JSON.stringify(fieldData));
+    // });
+
+    // Handle socialMedia - ensure it's always an object
+    let socialMedia = {};
+    if (data.socialMedia) {
+      try {
+        socialMedia = typeof data.socialMedia === 'string' ? 
+          (data.socialMedia === '' ? {} : JSON.parse(data.socialMedia)) : 
+          data.socialMedia;
+      } catch {
+        socialMedia = {};
+      }
     }
-}
+    formData.append('socialMedia', JSON.stringify(socialMedia));
 
-// export const forgotPassword = async (email) => {
-//     try {
-//         const res = await api.post('/auth/forgot-password', { email });
-//         if (!res.data.success) {
-//             throw new Error(res.data.message || 'Forgot password failed');
-//         }
-//         return { success: true, data: res.data.data };
-//     } catch (error) {
-//         toast.error(error.response?.data?.message || error.message);
-//         return { 
-//             success: false, 
-//             error: error.response?.data || { message: 'An unknown error occurred' } 
-//         };
-//     }
-// }
+    // Handle profile photo
+    if (data.profilePhotoFile) {
+      formData.append('profilePhoto', data.profilePhotoFile);
+    }
 
+    // Debug: Log what's being sent
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    const res = await api.patch(`/auth/users/${data.id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!res.data.success) {
+      throw new Error(res.data.message || 'Update failed');
+    }
+
+    return { 
+      success: true, 
+      data: res.data.data,
+      message: res.data.message
+    };
+  } catch (error) {
+    console.error('Update error:', error);
+    return { 
+      success: false, 
+      error: error.response?.data || { message: error.message || 'An unknown error occurred' } 
+    };
+  }
+};
 export const forgotPassword = async (email) => {
     try {
         const res = await api.post('/auth/forgot-password', { email });

@@ -42,7 +42,7 @@ const Login = () => {
   const roles = [
     { value: 'admin', label: 'Administrator' },
     { value: 'evaluator', label: 'Evaluator' },
-    { value: 'staff', label: 'Academic Staff' },
+    { value: 'staff', label: 'Staff' },
   ];
 
   const handleSubmit = async (e) => {
@@ -52,7 +52,7 @@ const Login = () => {
     if (credentials.username && credentials.password && selectedRole) {
       try {
         const user = await login(credentials.username, credentials.password);
-        toast.success('Login successful!, navigating...');
+        toast.success('Login successful!');
         navigate(`/${user.role}/dashboard`);
       } catch (error) {
         toast.error(error.message || 'Login failed');
