@@ -50,7 +50,7 @@ export const getUserProfile = async (token) => {
     const res = await api.get('/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     });
-    // console.log('User profile response:', res.data);
+    console.log('User profile response:', res.data);
     return { success: true, data: res.data };
   } catch (error) {
     console.error('getUserProfile error:', error);
