@@ -210,30 +210,26 @@ const removeSkill = (index) => {
     });
   };
 
-  const handleSave = () => {
-    onSave(userData);
+  // const handleSave = () => {
+  //   onSave(userData);
 
+  // };
+
+const handleSave = () => {
+  // Ensure all array fields exist and are arrays
+  const payload = {
+    ...userData,
+    education: userData.education || [],
+    experience: userData.experience || [],
+    skills: userData.skills || [],
+    socialMedia: userData.socialMedia || {}
   };
-
-//   const handleSave = async () => {
-//   try {
-//     // Create a clean payload with guaranteed arrays
-//     const payload = {
-//       ...userData,
-//       education: userData.education || [],
-//       experience: userData.experience || [],
-//       skills: userData.skills || [],
-//       socialMedia: userData.socialMedia || {}
-//     };
-    
-//     console.log('Payload before save:', payload); // Debugging
-    
-//     await onSave(payload);
-//   } catch (error) {
-//     console.error('Save failed:', error);
-//   }
-// };
-
+  
+  // Debug before sending
+  console.log('Saving payload:', payload);
+  
+  onSave(payload);
+};
    if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -757,8 +753,15 @@ const removeSkill = (index) => {
                             <input
                               type="text"
                               value={skill.name || ''}
-                              onChange={(e) => handleSkillChange( index, 'name', e.target.value)}
-                            
+                              // onChange={(e) => handleSkillChange( index, 'name', e.target.value)}
+                               onChange={(e) => {
+        const updatedSkills = [...userData.skills];
+        updatedSkills[index] = {
+          ...updatedSkills[index],
+          name: e.target.value
+        };
+        setUserData({...userData, skills: updatedSkills});
+      }}
                               className="w-full border border-gray-300 rounded-md p-2"
                             />
                           </div>
