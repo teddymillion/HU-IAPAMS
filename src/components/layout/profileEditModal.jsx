@@ -4,7 +4,7 @@ import { FiUser, FiUpload, FiX, FiPlus, FiTrash2, FiLink } from 'react-icons/fi'
 import { useState, useEffect, } from 'react';
 import { debounce } from 'lodash';
 
-export const ProfileEditModal = ({
+const ProfileEditModal = ({
   isOpen,
   onClose,
   profilePhoto,
@@ -933,3 +933,5 @@ const handleSave = () => {
     </AnimatePresence>
   );
 };
+
+export default ProfileEditModal;
