@@ -1,5 +1,5 @@
 import { getSearchQuery } from '/src/utils/helper';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 import { api, publicApi } from '/src/utils/api';
 
 export const getUsers = async (queryParams, token) => {

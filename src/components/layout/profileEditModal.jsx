@@ -219,10 +219,10 @@ const handleSave = () => {
   // Ensure all array fields exist and are arrays
   const payload = {
     ...userData,
-    education: userData.education || [],
-    experience: userData.experience || [],
-    skills: userData.skills || [],
-    socialMedia: userData.socialMedia || {}
+    education: userData?.education || [],
+    experience: userData?.experience || [],
+    skills: userData?.skills || [],
+    socialMedia: userData?.socialMedia || {}
   };
   
   // Debug before sending
