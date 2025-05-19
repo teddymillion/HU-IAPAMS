@@ -76,16 +76,16 @@ const AvailablePositions = () => {
       ]);
 
       if (positionsRes.success) {
-        console.log('Positions response:', positionsRes);
+        // console.log('Positions response:', positionsRes);
         setPositions([...positionsRes.data]);
       } else {
         console.error('Positions fetch failed:', positionsRes);
       }
 
       if (applicationsRes.success) {
-        console.log('Applications response:', applicationsRes);
+        // console.log('Applications response:', applicationsRes);
         const apps = Array.isArray(applicationsRes.data.data) ? [...applicationsRes.data.data] : [];
-        console.log('Applications to set:', apps);
+        // console.log('Applications to set:', apps);
         setApplications(apps);
       } else {
         console.error('Applications fetch failed:', applicationsRes);
@@ -101,7 +101,7 @@ const AvailablePositions = () => {
   };
 
   useEffect(() => {
-    console.log('Filtering with:', { positions, applications, searchTerm, departmentFilter, tabValue });
+    // console.log('Filtering with:', { positions, applications, searchTerm, departmentFilter, tabValue });
     let result = positions;
     if (searchTerm) {
       result = result.filter(p =>
@@ -137,10 +137,10 @@ const AvailablePositions = () => {
       files.certificates.forEach(cert => {
         formData.append('certificates', cert);
       });
-      console.log('Form Data prepared:', { positionId, cv: files.cv?.name, coverLetter: files.coverLetter?.name, certificates: files.certificates.map(c => c.name) });
+      // console.log('Form Data prepared:', { positionId, cv: files.cv?.name, coverLetter: files.coverLetter?.name, certificates: files.certificates.map(c => c.name) });
   
       const res = await applyToPosition(formData, auth.tokens.accessToken);
-      console.log('Apply response:', res);
+      // console.log('Apply response:', res);
       if (res.success) {
         toast.success('Application submitted successfully!');
         setOpenDialog(false);
@@ -157,7 +157,6 @@ const AvailablePositions = () => {
   const getApplicationStatus = (positionId) => {
     if (!Array.isArray(applications)) return null;
     const application = applications.find(a => a.position?._id === positionId);
-    // console.log(`Checking status for position ${positionId}:`, application);
     if (!application) return null;
     switch (application.status) {
       case 'pending': return { text: 'Applied', color: 'warning' };
