@@ -165,8 +165,8 @@ const PositionManagement = () => {
         throw new Error(res.error.message || 'Failed to create position');
       }
 
-      // setPositions([...positions, newPosition]);      
-      await getPositionById(res.data._id, auth.tokens.accessToken);
+      // setPositions([...positions, newPosition]);  
+      await fetchPositions();
 
       toast.success(`Position ${status === 'published' ? 'published' : 'saved as draft'} successfully!`);
       setOpenModal(false);
