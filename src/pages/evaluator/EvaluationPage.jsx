@@ -43,7 +43,13 @@ import toast from 'react-hot-toast';
 
 const EvaluationPage = () => {
   const [applications, setApplications] = useState([]);
-  const [selectedApp, setSelectedApp] = useState(null);
+  // const [selectedApp, setSelectedApp] = useState(null);
+  const [selectedApp, setSelectedApp] = useState({
+  position: {},
+  applicant: {},
+  documents: {},
+  evaluations: []
+});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [scores, setScores] = useState({
@@ -153,10 +159,12 @@ const EvaluationPage = () => {
         const updatedApps = applications.map(app =>
           app._id === selectedApp._id ? res.data : app
         );
-        setApplications(updatedApps);
-        setSelectedApp(res.data);
+        // setApplications(updatedApps);
+        // console.log('Updated Applications:', updatedApps);
+        // setSelectedApp(res.data);
         toast.success('Evaluation submitted successfully!');
         handleCloseDialog();
+        await fetchData(); 
       }
     } catch (err) {
       console.error(err);
@@ -221,16 +229,16 @@ const EvaluationPage = () => {
                   <Card>
                     <CardContent>
                       <Typography variant="subtitle1" gutterBottom>
-                        {app.position.title}
+                        {app?.position?.title}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Applicant: {app.applicant.username}
+                        Applicant: {app?.applicant?.username}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Department: {app.position.department}
+                        Department: {app?.position?.department}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Applied: {new Date(app.appliedAt).toLocaleDateString()}
+                        Applied: {new Date(app?.appliedAt).toLocaleDateString()}
                       </Typography>
                       <Box sx={{
                         display: 'flex',
@@ -319,20 +327,20 @@ const EvaluationPage = () => {
                 Applicant Information
               </Typography>
               <Typography>
-                <strong>Name:</strong> {selectedApp.applicant.username}
+                <strong>Name:</strong> {selectedApp.applicant?.username}
               </Typography>
               <Typography>
-                <strong>Email:</strong> {selectedApp.applicant.email}
+                <strong>Email:</strong> {selectedApp.applicant?.email}
               </Typography>
 
               <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
                 Position Information
               </Typography>
               <Typography>
-                <strong>Title:</strong> {selectedApp.position.title}
+                <strong>Title:</strong> {selectedApp.position?.title}
               </Typography>
               <Typography>
-                <strong>Department:</strong> {selectedApp.position.department}
+                <strong>Department:</strong> {selectedApp.position?.department}
               </Typography>
 
               <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
@@ -342,22 +350,22 @@ const EvaluationPage = () => {
                 <Button
                   variant="outlined"
                   startIcon={<DownloadIcon />}
-                  href={selectedApp.documents.cv}
+                  href={selectedApp.documents?.cv}
                   target="_blank"
                 >
                   Download CV
                 </Button>
-                {selectedApp.documents.coverLetter && (
+                {selectedApp.documents?.coverLetter && (
                   <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}
-                    href={selectedApp.documents.coverLetter}
+                    href={selectedApp.documents?.coverLetter}
                     target="_blank"
                   >
                     Download Cover Letter
                   </Button>
                 )}
-                {selectedApp.documents.certificates?.map((cert, index) => (
+                {selectedApp.documents?.certificates?.map((cert, index) => (
                   <Button
                     key={index}
                     variant="outlined"
@@ -398,10 +406,10 @@ const EvaluationPage = () => {
           {selectedApp && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
-                Evaluating: {selectedApp.position.title}
+                Evaluating: {selectedApp.position?.title}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Applicant: {selectedApp.applicant.username}
+                Applicant: {selectedApp.applicant?.username}
               </Typography>
 
               <Box sx={{ mt: 3 }}>
@@ -485,10 +493,10 @@ const EvaluationPage = () => {
           {selectedApp && (
             <Box>
               <Typography variant="h6" gutterBottom>
-                {selectedApp.position.title}
+                {selectedApp.position?.title}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Applicant: {selectedApp.applicant.username}
+                Applicant: {selectedApp?.applicant?.username}
               </Typography>
 
               <Box sx={{
@@ -508,11 +516,11 @@ const EvaluationPage = () => {
                   <Typography variant="body2">
                     Status:
                     <Chip
-                      label={selectedApp.status}
+                      label={selectedApp?.status}
                       size="small"
                       color={
-                        selectedApp.status === 'accepted' ? 'success' :
-                          selectedApp.status === 'rejected' ? 'error' : 'warning'
+                        selectedApp?.status === 'accepted' ? 'success' :
+                          selectedApp?.status === 'rejected' ? 'error' : 'warning'
                       }
                       sx={{ ml: 1 }}
                     />
@@ -536,10 +544,10 @@ const EvaluationPage = () => {
                           mb: 1
                         }}>
                           <Avatar sx={{ bgcolor: 'primary.main' }}>
-                            {evalItem.evaluator.username.charAt(0).toUpperCase()}
+                            {evalItem.evaluator?.username?.charAt(0).toUpperCase()}
                           </Avatar>
                           <Typography fontWeight="bold">
-                            {evalItem.evaluator.username}
+                            {evalItem.evaluator?.username}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             {new Date(evalItem.submittedAt).toLocaleDateString()}

@@ -37,6 +37,7 @@ const AdminDashboard = () => {
       navLinks={navLinks}
       user={auth?.user}
       onLogout={logout}
+      token={auth?.tokens?.accessToken}
     >
       <Routes>
         <Route path="dashboard" element={<Overview />} />

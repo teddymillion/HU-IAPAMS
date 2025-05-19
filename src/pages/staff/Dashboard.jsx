@@ -39,6 +39,7 @@ const StaffDashboard = () => {
       user={auth?.user}
       navLinks={navItems}
       onLogout={logout}
+      token={auth?.tokens?.accessToken}
       >
         <Routes>
           <Route path='dashboard' element={<StaffHome/>} />

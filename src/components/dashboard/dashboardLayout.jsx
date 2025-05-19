@@ -1,4 +1,3 @@
-// src/components/dashboard/DashboardLayout.tsx
 import { motion, AnimatePresence } from 'framer-motion';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 

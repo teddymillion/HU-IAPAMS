@@ -39,10 +39,10 @@ export const createUser = async (data, token, isPublicRegistration = false) => {
             throw new Error(res.data.message || 'Registration failed');
         }
 
-        toast.success(res.data.message);
+        // toast.success(res.data.message);
         return { success: true, data: res.data.data };
     } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
+        // toast.error(error.response?.data?.message || error.message);
         return { 
             success: false, 
             error: error.response?.data || { message: 'An unknown error occurred' } 
@@ -146,10 +146,10 @@ export const resetPassword = async (token,newPassword) => {
         if (!res.data.success) {
             throw new Error(res.data.message || 'Reset password failed');
         }
-        toast.success(res.data.message);
+        // toast.success(res.data.message);
         return { success: true, data: res.data.data };
     } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
+        // toast.error(error.response?.data?.message || error.message);
         return { 
             success: false, 
             error: error.response?.data || { message: 'An unknown error occurred' } 
@@ -172,10 +172,10 @@ export const deleteUserAsync = async (ids, password, token) => {
             throw new Error(res.data.message || 'Delete failed');
         }
 
-        toast.success(res.data.message);
+        // toast.success(res.data.message);
         return { success: true, data: res.data.data };
     } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
+        // toast.error(error.response?.data?.message || error.message);
         return { 
             success: false, 
             error: error.response?.data || { message: 'An unknown error occurred' } 
@@ -212,7 +212,7 @@ export const getMyApplications = async (token) => {
     });
     return { success: true, data: res.data };
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
+    // toast.error(error.response?.data?.message || error.message);
     return { 
       success: false, 
       error: error.response?.data || { message: 'Failed to get applications' } 
@@ -229,7 +229,7 @@ export const getUserProfile = async (token) => {
     return { success: true, data: res.data };
   } catch (error) {
     console.error('getUserProfile error:', error);
-    toast.error(error.response?.data?.message || 'Failed to fetch profile');
+    // toast.error(error.response?.data?.message || 'Failed to fetch profile');
     return { success: false, data: null };
   }
 };

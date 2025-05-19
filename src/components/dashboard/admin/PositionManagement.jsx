@@ -38,7 +38,7 @@ import {
 import { useAuth } from '../../../context/authContext';
 import { api } from '../../../utils/api';
 import toast from 'react-hot-toast';
-import { createPosition, getPositions, getPositionById } from '../../../services/positionService';
+import { createPosition, getPositions } from '../../../services/positionService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 
 
@@ -165,8 +165,8 @@ const PositionManagement = () => {
         throw new Error(res.error.message || 'Failed to create position');
       }
 
-      // setPositions([...positions, newPosition]);  
-      await fetchPositions();
+      setPositions([...positions, newPosition]);  
+      // await fetchPositions();
 
       toast.success(`Position ${status === 'published' ? 'published' : 'saved as draft'} successfully!`);
       setOpenModal(false);
