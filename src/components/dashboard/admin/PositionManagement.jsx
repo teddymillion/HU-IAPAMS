@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -38,51 +38,9 @@ import {
 import { useAuth } from '../../../context/authContext';
 import { api } from '../../../utils/api';
 import toast from 'react-hot-toast';
-import { createPosition , getPositions,getPositionById} from '../../../services/positionService';
+import { createPosition, getPositions, getPositionById } from '../../../services/positionService';
+import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 
-
-// Mock data for positions (replace with actual API calls)
-const mockPositions = [
-  {
-    id: '1',
-    title: 'Senior Software Engineer',
-    department: 'engineering',
-    positionType: 'senior',
-    status: 'open',
-    deadline: '2023-12-31',
-    applicants: 15,
-    createdAt: '2023-10-15',
-    description: 'We are looking for an experienced software engineer to join our team and help build innovative solutions.',
-    requirements: ['5+ years of experience', 'Proficiency in JavaScript/TypeScript', 'Experience with React and Node.js'],
-    evaluationCriteria: ['Technical Skills', 'Problem Solving', 'Communication']
-  },
-  {
-    id: '2',
-    title: 'HR Manager',
-    department: 'hr',
-    positionType: 'head',
-    status: 'open',
-    deadline: '2023-11-30',
-    applicants: 8,
-    createdAt: '2023-10-10',
-    description: 'Lead our HR team and develop strategies to attract and retain top talent.',
-    requirements: ['7+ years HR experience', 'Leadership skills', 'Knowledge of labor laws'],
-    evaluationCriteria: ['Leadership', 'HR Knowledge', 'Interpersonal Skills']
-  },
-  {
-    id: '3',
-    title: 'Finance Analyst',
-    department: 'finance',
-    positionType: 'junior',
-    status: 'draft',
-    deadline: '2024-01-15',
-    applicants: 0,
-    createdAt: '2023-10-05',
-    description: 'Entry-level position for finance graduates to analyze financial data and prepare reports.',
-    requirements: ['Bachelor\'s in Finance', 'Excel proficiency', 'Attention to detail'],
-    evaluationCriteria: ['Analytical Skills', 'Excel Proficiency', 'Attention to Detail']
-  }
-];
 
 const PositionManagement = () => {
   const { auth } = useAuth();
@@ -105,13 +63,14 @@ const PositionManagement = () => {
     positionType: 'senior',
     requirements: [],
     deadline: '',
-    status: 'draft'
+    status: 'draft',
+    evaluators: []
   });
   const [evaluationCriteria, setEvaluationCriteria] = useState(['Technical Skills']);
   const [newCriteria, setNewCriteria] = useState('');
-
+  const [evaluators, setEvaluators] = useState([])
   const departments = [
-    'engineering', 'hr', 'finance', 'it', 'legal', 
+    'engineering', 'hr', 'finance', 'it', 'legal',
     'research', 'product', 'quality', 'supply', 'procurement'
   ];
 
@@ -122,7 +81,7 @@ const PositionManagement = () => {
     const matchesSearch = position.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = departmentFilter === 'all' || position.department === departmentFilter;
     const matchesStatus = statusFilter === 'all' || position.status === statusFilter;
-    
+
     return matchesSearch && matchesDepartment && matchesStatus;
   });
 
@@ -141,9 +100,43 @@ const PositionManagement = () => {
     });
   };
 
+  const getEvaluators = async () => {
+    try {
+
+      const res = await getUsers({
+        role: 'evaluator'
+      },
+        auth?.tokens?.accessToken
+
+      );
+      if (res.success) {
+        setEvaluators(res.data);
+      }
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch evaluators');
+      console.error('Error fetching evaluators:', error);
+
+    }
+  }
+  useEffect(() => {
+    if (openModal) {
+      getEvaluators();
+    }
+  }, [openModal]);
+
+
+  const handleEvaluatorChange = (event) => {
+    const { value } = event.target;
+    setFormData({
+      ...formData,
+      evaluators: value
+    });
+  };
+
   const handleSubmit = async (status) => {
     setIsLoading(true);
-    
+
     try {
       const positionPayload = {
         title: formData.title,
@@ -154,29 +147,31 @@ const PositionManagement = () => {
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
         status: status === 'published' ? 'open' : 'draft',
         evaluationCriteria: evaluationCriteria,
-        createdBy: user._id
+        createdBy: user._id,
+        evaluators: formData.evaluators
       };
 
-      // Mock response handling
       const newPosition = {
         ...positionPayload,
         id: `${positions.length + 1}`,
         applicants: 0,
+        status: status,
+        createdBy: user._id,
         createdAt: new Date().toISOString()
       };
-      res = await createPosition(positionPayload, auth.tokens.accessToken);
-        if (!res.success) {
-            throw new Error(res.error.message || 'Failed to create position');
-        }
-        toast.success('Position created successfully!');
+      console.log('Position Payload:', positionPayload);
+      const res = await createPosition(positionPayload, auth.tokens.accessToken);
+      if (!res.success) {
+        throw new Error(res.error.message || 'Failed to create position');
+      }
 
-
-      setPositions([...positions, newPosition]);
+      // setPositions([...positions, newPosition]);      
+      await getPositionById(res.data._id, auth.tokens.accessToken);
 
       toast.success(`Position ${status === 'published' ? 'published' : 'saved as draft'} successfully!`);
       setOpenModal(false);
       resetForm();
-      
+
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create position');
       console.error('Error creating position:', error);
@@ -193,7 +188,8 @@ const PositionManagement = () => {
       positionType: 'senior',
       requirements: [],
       deadline: '',
-      status: 'draft'
+      status: 'draft',
+      evaluators: []
     });
     setEvaluationCriteria(['Technical Skills']);
     setNewCriteria('');
@@ -228,23 +224,23 @@ const PositionManagement = () => {
   };
 
 
-//    get positions
-    const fetchPositions = async () => {
-        try {
-        const res = await getPositions(auth.tokens.accessToken);
-        if (!res.success) {
-            throw new Error(res.error.message || 'Failed to fetch positions');
-        }
-        setPositions(res.data);
-        } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to fetch positions');
-        console.error('Error fetching positions:', error);
-        }
-    };
+  //    get positions
+  const fetchPositions = async () => {
+    try {
+      const res = await getPositions(auth.tokens.accessToken);
+      if (!res.success) {
+        throw new Error(res.error.message || 'Failed to fetch positions');
+      }
+      setPositions(res.data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch positions');
+      console.error('Error fetching positions:', error);
+    }
+  };
 
-    React.useEffect(() => {
-        fetchPositions();
-    }, []);
+  React.useEffect(() => {
+    fetchPositions();
+  }, []);
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -252,28 +248,28 @@ const PositionManagement = () => {
           Position Management
         </Typography>
         <Box>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenModal(true)}
-            sx={{ 
+            sx={{
               mr: 2,
               bgcolor: 'green',
-              opacity:'0.8',
+              opacity: '0.8',
               '&:hover': { bgcolor: 'primary.dark' }
 
             }}
           >
             Post New Job
           </Button>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             startIcon={viewMode === 'grid' ? <ViewListIcon /> : <ViewModuleIcon />}
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
             sx={{
               borderColor: 'primary.main',
               color: 'green',
-              opacity:'0.8',
+              opacity: '0.8',
               '&:hover': { borderColor: 'primary.dark' }
             }}
           >
@@ -283,8 +279,8 @@ const PositionManagement = () => {
       </Box>
 
       {/* Search and Filters */}
-      <Paper sx={{ 
-        p: 3, 
+      <Paper sx={{
+        p: 3,
         mb: 4,
         borderRadius: 2,
         boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)'
@@ -310,7 +306,7 @@ const PositionManagement = () => {
           <Grid item xs={6} md={3}>
             <FormControl fullWidth>
               <InputLabel>Department</InputLabel>
-              <Select 
+              <Select
                 label="Department"
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
@@ -326,7 +322,7 @@ const PositionManagement = () => {
           <Grid item xs={6} md={3}>
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
-              <Select 
+              <Select
                 label="Status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -340,9 +336,9 @@ const PositionManagement = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
+            <Button
+              variant="outlined"
+              fullWidth
               onClick={() => {
                 setSearchTerm('');
                 setDepartmentFilter('all');
@@ -364,118 +360,118 @@ const PositionManagement = () => {
       {/* Positions Grid View */}
       {viewMode === 'grid' && (
         <Box sx={{ maxWidth: '1200px', mx: 'auto', px: 2 }}>
-               <Grid container spacing={3}>
-          {filteredPositions.map((position) => (
-            <Grid item key={position.id} xs={12} sm={6} md={4} lg={4}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)'
-                  }
-                }}
-                onClick={() => handlePositionClick(position)}
-                elevation={3}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Chip 
-                      label={position.positionType} 
-                      size="small" 
-                      color="primary" 
-                      variant="outlined"
-                      sx={{ fontWeight: 'medium' }}
-                    />
-                    <Chip 
-                      label={position.status} 
-                      size="small" 
-                      color={getStatusColor(position.status)}
-                      sx={{ fontWeight: 'medium' }}
-                    />
-                  </Box>
-                  <Typography gutterBottom variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-                    {position.title}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: getDepartmentColor(position.department), 
-                        width: 24, 
-                        height: 24,
-                        mr: 1,
-                        fontSize: '0.75rem'
+          <Grid container spacing={3}>
+            {filteredPositions.map((position) => (
+              <Grid item key={position.id} xs={12} sm={6} md={4} lg={4}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)'
+                    }
+                  }}
+                  onClick={() => handlePositionClick(position)}
+                  elevation={3}
+                >
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Chip
+                        label={position.positionType}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ fontWeight: 'medium' }}
+                      />
+                      <Chip
+                        label={position.status}
+                        size="small"
+                        color={getStatusColor(position.status)}
+                        sx={{ fontWeight: 'medium' }}
+                      />
+                    </Box>
+                    <Typography gutterBottom variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
+                      {position.title}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: getDepartmentColor(position.department),
+                          width: 24,
+                          height: 24,
+                          mr: 1,
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {position.department.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Typography variant="body2" color="text.secondary">
+                        {getDepartmentLabel(position.department)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <CalendarTodayIcon sx={{ fontSize: '1rem', mr: 1, color: 'text.secondary' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Deadline: {new Date(position.deadline).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                  <CardActions sx={{
+                    justifyContent: 'space-between',
+                    p: 2,
+                    borderTop: '1px solid',
+                    borderColor: 'divider'
+                  }}>
+                    <Badge
+                      badgeContent={position.applicants}
+                      color="primary"
+                      sx={{
+                        '& .MuiBadge-badge': {
+                          right: -5,
+                          top: 5,
+                          fontWeight: 'bold'
+                        }
                       }}
                     >
-                      {position.department.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Typography variant="body2" color="text.secondary">
-                      {getDepartmentLabel(position.department)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CalendarTodayIcon sx={{ fontSize: '1rem', mr: 1, color: 'text.secondary' }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Deadline: {new Date(position.deadline).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                </CardContent>
-                <CardActions sx={{ 
-                  justifyContent: 'space-between', 
-                  p: 2,
-                  borderTop: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Badge 
-                    badgeContent={position.applicants} 
-                    color="primary"
-                    sx={{ 
-                      '& .MuiBadge-badge': { 
-                        right: -5, 
-                        top: 5,
-                        fontWeight: 'bold'
-                      } 
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                      Applicants
-                    </Typography>
-                  </Badge>
-                  <Button 
-                    size="small" 
-                    startIcon={<VisibilityIcon />}
-                    sx={{ 
-                      color: 'primary.main',
-                      fontWeight: 'medium'
-                    }}
-                  >
-                    View
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                        Applicants
+                      </Typography>
+                    </Badge>
+                    <Button
+                      size="small"
+                      startIcon={<VisibilityIcon />}
+                      sx={{
+                        color: 'primary.main',
+                        fontWeight: 'medium'
+                      }}
+                    >
+                      View
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
-     
+
       )}
 
       {/* Positions List View */}
       {viewMode === 'list' && (
-        <Paper sx={{ 
+        <Paper sx={{
           p: 2,
           borderRadius: 2,
           boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)'
         }}>
-          <Grid 
-            container 
-            spacing={2} 
-            sx={{ 
-              mb: 2, 
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              mb: 2,
               fontWeight: 'bold',
               p: 2,
               bgcolor: 'action.hover',
@@ -489,11 +485,11 @@ const PositionManagement = () => {
             <Grid item xs={2}>Actions</Grid>
           </Grid>
           {filteredPositions.map((position) => (
-            <Paper 
-              key={position.id} 
-              sx={{ 
-                p: 2, 
-                mb: 2, 
+            <Paper
+              key={position.id}
+              sx={{
+                p: 2,
+                mb: 2,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s',
                 '&:hover': {
@@ -518,10 +514,10 @@ const PositionManagement = () => {
                 </Grid>
                 <Grid item xs={2}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: getDepartmentColor(position.department), 
-                        width: 24, 
+                    <Avatar
+                      sx={{
+                        bgcolor: getDepartmentColor(position.department),
+                        width: 24,
                         height: 24,
                         mr: 1,
                         fontSize: '0.75rem'
@@ -533,26 +529,26 @@ const PositionManagement = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={2}>
-                  <Chip 
-                    label={position.positionType} 
-                    size="small" 
-                    color="primary" 
+                  <Chip
+                    label={position.positionType}
+                    size="small"
+                    color="primary"
                     variant="outlined"
                   />
                 </Grid>
                 <Grid item xs={2}>
-                  <Chip 
-                    label={position.status} 
-                    size="small" 
+                  <Chip
+                    label={position.status}
+                    size="small"
                     color={getStatusColor(position.status)}
                     sx={{ fontWeight: 'medium' }}
                   />
                 </Grid>
                 <Grid item xs={2}>
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     startIcon={<VisibilityIcon />}
-                    sx={{ 
+                    sx={{
                       color: 'primary.main',
                       fontWeight: 'medium'
                     }}
@@ -567,15 +563,15 @@ const PositionManagement = () => {
       )}
 
       {/* Position Details Dialog */}
-      <Dialog 
-        open={openDetails} 
+      <Dialog
+        open={openDetails}
         onClose={() => setOpenDetails(false)}
         maxWidth="md"
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: 'primary.main', 
+        <DialogTitle sx={{
+          bgcolor: 'primary.main',
           color: 'primary.contrastText',
           display: 'flex',
           justifyContent: 'space-between',
@@ -604,9 +600,9 @@ const PositionManagement = () => {
                 </Typography>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                   <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>Status:</Box>
-                  <Chip 
-                    label={selectedPosition.status} 
-                    size="small" 
+                  <Chip
+                    label={selectedPosition.status}
+                    size="small"
                     color={getStatusColor(selectedPosition.status)}
                     sx={{ ml: 1, fontWeight: 'medium' }}
                   />
@@ -619,15 +615,15 @@ const PositionManagement = () => {
                 </Typography>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                   <Box component="span" sx={{ color: 'text.secondary', mr: 1 }}>Applicants:</Box>
-                  <Badge 
-                    badgeContent={selectedPosition.applicants} 
+                  <Badge
+                    badgeContent={selectedPosition.applicants}
                     color="primary"
-                    sx={{ 
-                      '& .MuiBadge-badge': { 
-                        right: -5, 
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        right: -5,
                         top: 5,
                         fontWeight: 'bold'
-                      } 
+                      }
                     }}
                   />
                 </Typography>
@@ -636,11 +632,11 @@ const PositionManagement = () => {
                   {new Date(selectedPosition.createdAt).toLocaleDateString()}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                   Description
@@ -649,7 +645,7 @@ const PositionManagement = () => {
                   {selectedPosition.description || 'No description provided.'}
                 </Typography>
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                   Requirements
@@ -668,18 +664,18 @@ const PositionManagement = () => {
                   </Typography>
                 )}
               </Grid>
-              
+
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                   Evaluation Criteria
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedPosition.evaluationCriteria?.map((criteria, index) => (
-                    <Chip 
-                      key={index} 
-                      label={criteria} 
-                      sx={{ 
-                        bgcolor: 'primary.light', 
+                    <Chip
+                      key={index}
+                      label={criteria}
+                      sx={{
+                        bgcolor: 'primary.light',
                         color: 'primary.contrastText',
                         fontWeight: 'medium'
                       }}
@@ -691,17 +687,17 @@ const PositionManagement = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button 
+          <Button
             onClick={() => setOpenDetails(false)}
-            sx={{ 
+            sx={{
               color: 'text.secondary',
               '&:hover': { bgcolor: 'action.hover' }
             }}
           >
             Close
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             color="primary"
             sx={{
               bgcolor: 'primary.main',
@@ -714,15 +710,15 @@ const PositionManagement = () => {
       </Dialog>
 
       {/* Post New Job Modal */}
-      <Dialog 
-        open={openModal} 
+      <Dialog
+        open={openModal}
         onClose={() => setOpenModal(false)}
         maxWidth="md"
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ 
-          bgcolor: 'primary.main', 
+        <DialogTitle sx={{
+          bgcolor: 'primary.main',
           color: 'primary.contrastText',
           display: 'flex',
           justifyContent: 'space-between',
@@ -833,7 +829,7 @@ const PositionManagement = () => {
                 label="Requirements (one per line)"
                 name="requirements"
                 value={formData.requirements.join('\n')}
-                onChange={(e) => setFormData({...formData, requirements: e.target.value.split('\n')})}
+                onChange={(e) => setFormData({ ...formData, requirements: e.target.value.split('\n') })}
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
@@ -849,8 +845,8 @@ const PositionManagement = () => {
                     key={index}
                     label={criteria}
                     onDelete={() => setEvaluationCriteria(evaluationCriteria.filter((_, i) => i !== index))}
-                    sx={{ 
-                      bgcolor: 'primary.light', 
+                    sx={{
+                      bgcolor: 'primary.light',
                       color: 'primary.contrastText',
                       '& .MuiChip-deleteIcon': {
                         color: 'primary.contrastText'
@@ -870,7 +866,7 @@ const PositionManagement = () => {
                 <Button
                   variant="contained"
                   onClick={handleAddCriteria}
-                  sx={{ 
+                  sx={{
                     ml: 1,
                     bgcolor: 'primary.main',
                     '&:hover': { bgcolor: 'primary.dark' },
@@ -904,6 +900,40 @@ const PositionManagement = () => {
                 }}
               />
             </Grid>
+            <Grid item xs={12}>
+  <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+    7. Assign Evaluators
+  </Typography>
+  <FormControl fullWidth>
+    <InputLabel>Select Evaluators</InputLabel>
+    <Select
+      multiple
+      name="evaluators"
+      value={formData.evaluators}
+      onChange={handleEvaluatorChange}
+      renderValue={(selected) => (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+          {selected.map((evaluatorId) => {
+            const evaluator = evaluators.find(e => e._id === evaluatorId);
+            return (
+              <Chip 
+                key={evaluatorId} 
+                label={evaluator ? evaluator.fullName : evaluatorId}
+                sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}
+              />
+            );
+          })}
+        </Box>
+      )}
+    >
+      {evaluators.map((evaluator) => (
+        <MenuItem key={evaluator._id} value={evaluator._id}>
+          {evaluator.fullName} ({evaluator.username})
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -912,26 +942,13 @@ const PositionManagement = () => {
               setOpenModal(false);
               resetForm();
             }}
-            sx={{ 
+            sx={{
               mr: 1,
               color: 'text.secondary',
               '&:hover': { bgcolor: 'action.hover' }
             }}
           >
             Cancel
-          </Button>
-          <Button
-            onClick={() => handleSubmit('draft')}
-            disabled={isLoading}
-            variant="outlined"
-            sx={{ 
-              mr: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': { borderColor: 'primary.dark' }
-            }}
-          >
-            {isLoading ? <CircularProgress size={24} /> : 'Save as Draft'}
           </Button>
           <Button
             onClick={() => handleSubmit('published')}

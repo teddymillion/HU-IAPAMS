@@ -12,7 +12,7 @@ export const getUsers = async (queryParams, token) => {
         return { success: true, data: res.data.data, totalRecords: res.data.meta.total };
     }
     catch (error) {
-        toast.error(error.response?.data?.message || error.message);
+        // toast.error(error.response?.data?.message || error.message);
         return { 
         success: false, 
         error: error.response?.data || { message: 'An unknown error occurred' } 
@@ -225,7 +225,7 @@ export const getUserProfile = async (token) => {
     const res = await api.get('/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     });
-    console.log('User profile response:', res.data);
+    // console.log('User profile response:', res.data);
     return { success: true, data: res.data };
   } catch (error) {
     console.error('getUserProfile error:', error);

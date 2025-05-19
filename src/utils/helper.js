@@ -1,27 +1,23 @@
 import { alpha } from '@mui/material';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 
 export const getSearchQuery = (queryParams) => {
-  const { page, rowsPerPage, status } = queryParams; // value, columns, fromDate, toDate
+  const { page, rowsPerPage, status, role } = queryParams;
   let query = '?';
+
   if (status && status !== '') {
     query += `status=${status}&`;
   }
-  // if (columns.length > 0 && value.length > 0) {
-  //     query += `columns=${columns}&`;
-  // }
-  // if (columns.length > 0 && value.length > 0) {
-  //     query += `value=${value}&`;
-  // }
-  // if (fromDate) {
-  //     query += `from_date=${fromDate}&`;
-  // }
-  // if (toDate) {
-  //     query += `to_date=${toDate}&`;
-  // }
-  query += `page=${page}&size=${rowsPerPage > 30 ? 30 : rowsPerPage}`;
+
+  if (role && role !== '') {
+    query += `role=${role}&`;
+  }
+
+  query += `page=${page || 1}&size=${rowsPerPage > 30 ? 30 : (rowsPerPage || 10)}`;
+
   return query;
 };
+
 
 export const getSpeficiLengthString = (string, length) => {
   if (!string) return '';

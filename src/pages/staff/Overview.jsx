@@ -205,12 +205,12 @@ const StaffHome = () => {
   }
 
   // Inside your component, after fetching positions & applications:
-  console.log('Applications:', applications); // Check the applications data
+  // console.log('Applications:', applications); // Check the applications data
 const appliedPositionIds = applications.map(app => app.position._id); // Adjust field name if needed
 console.log('Applied position IDs:', appliedPositionIds); // Check the IDs
 const newPositions = positions.filter(pos => !appliedPositionIds.includes(pos._id));
 
-console.log('Newly posted positions:', newPositions);
+// console.log('Newly posted positions:', newPositions);
   function getStatusColor(status) {
     switch (status) {
       case 'applied': return 'bg-blue-500';
