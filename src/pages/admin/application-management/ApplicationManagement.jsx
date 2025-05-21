@@ -158,7 +158,7 @@ const ApplicationManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center">
-                      <AccessTime className="mr-1 text-gray-400" size="small" />
+                      <AccessTime className="mr-1 text-gray-400" size="small"/>
                       {app.appliedDate}
                     </div>
                   </td>
