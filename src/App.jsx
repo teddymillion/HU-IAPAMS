@@ -22,7 +22,7 @@ function App() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        {/* Protected Routes */}
+        {/* Protected Routes*/}
         
         <Route path="/admin/*" element={
           <ProtectedRoute allowedRole="admin">
